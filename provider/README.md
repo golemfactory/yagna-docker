@@ -17,3 +17,7 @@ Run using:
 
 ```docker-compose up -d --build```
 
+In node_env.env you can put environment variables for the node (both yagna, ya-provider, exe-unit and ya-runtime-vm)
+
+In dock_prov_0 you can find all logs and db. Remove the files to clean data in yagna nodes.
+
