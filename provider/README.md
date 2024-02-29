@@ -21,3 +21,13 @@ In node_env.env you can put environment variables for the node (both yagna, ya-p
 
 In dock_prov_0 you can find all logs and db. Remove the files to clean data in yagna nodes.
 
+# useful tricks
+
+To run yagna command run when your container are running:
+
+```docker-compose exec provider_0 yagna payment status```
+[yagna_rCURRENT.log](dock_prov_0%2Fyagna%2Fyagna_rCURRENT.log)
+```docker-compose exec provider_1 yagna payment status```
+
+You can run other commands in yagna api to communicate with the yagna nodes.
+
