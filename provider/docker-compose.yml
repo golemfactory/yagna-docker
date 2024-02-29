@@ -1,0 +1,7 @@
+services:
+    provider:
+      image: provider
+      build: .
+      ports:
+      - "7465:7465"
+      command: "golemsp run --no-interactive"
