@@ -1,4 +1,8 @@
 import sys
+import argparse
+
+# Description: This is a template for the docker-compose file.
+# You can use it as base for building your own custom docker-compose file.
 
 
 TEMPLATE = """  provider_%%PROVIDER_NO%%:
@@ -22,20 +26,29 @@ TEMPLATE = """  provider_%%PROVIDER_NO%%:
       - './dock_prov_%%PROVIDER_NO%%/yagna:/root/.local/share/yagna'
 """
 
+
 # Description: This script generates a docker-compose file for running multiple providers on the same machine.
 def generate_compose_file(number_of_providers: int = 2):
     comp_file = ""
     comp_file += "services:\n"
     for provider_no in range(0, number_of_providers):
-        comp_file += (
-        .replace("%%PROVIDER_NO%%", str(provider_no)).replace("%%PORT_NO%%", str(8555 + provider_no)))
+        entr = TEMPLATE.replace("%%PROVIDER_NO%%", str(provider_no))
+        entr = entr.replace("%%PORT_NO%%", str(8555 + provider_no))
+        comp_file += entr
     return comp_file
 
 
 def main():
-    num_prov = sys.argv[1] if len(sys.argv) > 1 else 2
+    args = argparse.ArgumentParser()
+
+    args.add_argument("-n", "--num-providers", type=int, help="Number of providers to be generated", default=2)
+    args.add_argument("-o", "--output-file", type=str, help="Output file generated",
+                      default="docker-compose_generated.yml")
+
+    args = args.parse_args()
+    num_prov = args.num_providers
     gen_file = generate_compose_file(num_prov)
-    with open("docker-compose_generated.yml", "w") as f:
+    with open(args.output_file, "w") as f:
         f.write(gen_file)
 
 
