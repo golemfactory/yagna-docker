@@ -1,0 +1,17 @@
+services:
+  reqeustor:
+    image: requestor
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - 'YAGNA_VERSION=${YAGNA_VERSION}'
+    ports:
+      - '7465:7465'
+    command: yagna service run
+    env_file:
+      - node_env.env
+    environment:
+      - NODE_NAME=dock_prov_0
+    volumes:
+      - './dock_requestor/yagna:/root/.local/share/yagna'
