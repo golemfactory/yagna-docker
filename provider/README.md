@@ -23,6 +23,10 @@ In dock_prov_0 you can find all logs and db. Remove the files to clean data in y
 
 # useful tricks
 
+To see logs of yagna nodes run:
+
+```docker-compose logs```
+
 To run yagna command run when your container are running:
 
 ```docker-compose exec provider_0 yagna payment status```
