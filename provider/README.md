@@ -15,7 +15,7 @@ to install version 0.14.0
 or 
 ```YAGNA_VERSION=pre-rel-v0.15.0-rc16```
 
-for pre-les versions (basically tag created to test the release)
+for pre-release versions (basically tag created to test the release)
 
 To add more providers duplicate entries in docker-compose
 
@@ -42,4 +42,8 @@ To run yagna command run when your container are running:
 You can run other commands in yagna api to communicate with the yagna nodes.
 
 All files are mapped to your local filesystem so you can access yagna and ya-provider logs and databases.
+
+# I need more providers
+
+You can use python script for generating docker file for more providers.
 
