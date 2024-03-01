@@ -47,3 +47,5 @@ All files are mapped to your local filesystem so you can access yagna and ya-pro
 
 You can use python script for generating docker file for more providers.
 
+```python gen_compose.py -n 5 -o docker-compose.yml```
+

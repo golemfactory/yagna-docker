@@ -18,7 +18,7 @@ That's why created python script to generate docker-compose file, which might so
 not so complicated yet give more flexibility. You can of course edit docker-compose file manually, but it is prone to errors, like missing a port or other mapping.
 
 I choose to use python as base image for generating docker file, because I found it very universal and powerful. If you want 
-to use ligher image you are free to modify Dockerfile according to your needs.
+to use lighter image you are free to modify Dockerfile according to your needs.
 
 ## instructions
 
