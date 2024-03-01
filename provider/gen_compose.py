@@ -1,5 +1,9 @@
-import sys
 import argparse
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Description: This is a template for the docker-compose file.
 # You can use it as base for building your own custom docker-compose file.
@@ -49,6 +53,7 @@ def main():
     num_prov = args.num_providers
     gen_file = generate_compose_file(num_prov)
     with open(args.output_file, "w") as f:
+        logger.info(f"Writing to file {args.output_file}")
         f.write(gen_file)
 
 
