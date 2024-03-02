@@ -1,5 +1,5 @@
 services:
-  reqeustor:
+  requestor:
     image: requestor
     build:
       context: .
