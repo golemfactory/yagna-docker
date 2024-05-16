@@ -7,10 +7,10 @@
     <title>Command panel</title>
 </head>
 <body>
-    <h1>Nodes</h1>
-    <div style="padding: 1em;">
-        <button onclick="stopNodes()" style="margin: 1em;">Stop all nodes</button>
-        <button onclick="startNodes()" style="margin: 1em;">Start nodes</button>
+    <div style="padding: 0.6em; font-size: 1.4em; font-weight: bold">Your testnet</div>
+    <div style="padding: 0.2em;">
+        <button id="stop_nodes_btn" onclick="stopNodes()" style="margin: 0.5em;">Stop all nodes</button>
+        <button id="start_nodes_btn" onclick="startNodes()" style="margin: 0.5em;">Start nodes</button>
     </div>
     <div>
         {% for node in nodes %}
@@ -30,6 +30,8 @@
     let nodes = {{ nodes }};
 
     async function stopNodes() {
+        $(`#stop_nodes_btn`).prop('disabled', true)
+        $(`#start_nodes_btn`).prop('disabled', true);
         let startClosing = fetch(`/compose/down`, {
             method: "GET", // *GET, POST, PUT, DELETE, etc.
         });
@@ -39,10 +41,16 @@
         }
 
         await startClosing;
+        $(`#stop_nodes_btn`).prop('disabled', false)
+        $(`#start_nodes_btn`).prop('disabled', false);
+
         await refreshNodes();
     }
 
     async function startNodes() {
+        $(`#stop_nodes_btn`).prop('disabled', true)
+        $(`#start_nodes_btn`).prop('disabled', true);
+
         let runUp = fetch(`/compose/up`, {
             method: "GET", // *GET, POST, PUT, DELETE, etc.
         });
@@ -52,8 +60,9 @@
         }
 
         await runUp;
+        $(`#stop_nodes_btn`).prop('disabled', false)
+        $(`#start_nodes_btn`).prop('disabled', false);
         await refreshNodes(true);
-
     }
 
     async function loadYagnaStatus(node, showChecking) {
