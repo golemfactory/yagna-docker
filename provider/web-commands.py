@@ -100,7 +100,7 @@ async def main():
     logging.basicConfig(level=logging.DEBUG)
     loc_logger = logging.getLogger(__name__)
     server = Server(loc_logger)
-    await server.start("127.0.0.1", 12834)
+    await server.start("0.0.0.0", 12834)
 
     while True:
         await asyncio.sleep(1)
