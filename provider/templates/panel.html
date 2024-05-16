@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Command panel</title>
+</head>
+<body>
+    <h1>Nodes</h1>
+    <div style="padding: 1em;">
+        <button onclick="stopNodes()" style="margin: 1em;">Stop all nodes</button>
+        <button onclick="startNodes()" style="margin: 1em;">Start nodes</button>
+    </div>
+    <div>
+        {% for node in nodes %}
+        <div style="padding: 1em; border: 1px solid gray; margin: 0.2em;">
+            <div style="font-weight: bold;">Provider number: {{node}}</div>
+            <table>
+                <tr><th>Status/Identity</th><td><div id="yagna_status_{{node}}"></div></td></tr>
+
+            </table>
+
+        </div>
+        {% endfor %}
+    </div>
+</body>
+<script>
+
+    let nodes = {{ nodes }};
+
+    async function stopNodes() {
+        let startClosing = fetch(`/compose/down`, {
+            method: "GET", // *GET, POST, PUT, DELETE, etc.
+        });
+
+        for (let node = 0; node < nodes.length; node++) {
+            $(`#yagna_status_${node}`).html("stopping...");
+        }
+
+        await startClosing;
+        await refreshNodes();
+    }
+
+    async function startNodes() {
+        let runUp = fetch(`/compose/up`, {
+            method: "GET", // *GET, POST, PUT, DELETE, etc.
+        });
+
+        for (let node = 0; node < nodes.length; node++) {
+            $(`#yagna_status_${node}`).html("starting...");
+        }
+
+        await runUp;
+        await refreshNodes(true);
+
+    }
+
+    async function loadYagnaStatus(node, showChecking) {
+        // call the function to load the data
+        if (showChecking) {
+            $(`#yagna_status_${node}`).html("checking...");
+        }
+
+        const response = await fetch(`/yagna/${node}/isup`, {
+            method: "GET", // *GET, POST, PUT, DELETE, etc.
+        });
+        let resp = await response.text();
+
+        let res_json = JSON.parse(resp);
+        if ('identity' in res_json) {
+            $(`#yagna_status_${node}`).css('color', 'green');
+            $(`#yagna_status_${node}`).html(res_json['identity']);
+        } else {
+            $(`#yagna_status_${node}`).css('color', 'red');
+            $(`#yagna_status_${node}`).html(res_json['error']);
+        }
+        console.log(`response: ${response.status} ${response.statusText}`);
+    }
+
+    async function refreshNodes(showChecking) {
+        let futures = [];
+        for (let i = 0; i < nodes.length; i++) {
+            futures.push(loadYagnaStatus(nodes[i], showChecking));
+        }
+        await Promise.all(futures);
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        console.log('DOM fully loaded and parsed');
+        await refreshNodes(true);
+
+
+        while (true) {
+            try {
+                await refreshNodes(false);
+            } catch (e) {
+                console.error(e);
+            }
+            await new Promise(r => setTimeout(r, 10000));
+        }
+    });
+</script>
+</html>
