@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
     <title>Command panel</title>
 </head>
 <body>
@@ -16,6 +24,7 @@
         {% for node in nodes %}
         <div style="padding: 1em; border: 1px solid gray; margin: 0.2em;">
             <div style="font-weight: bold;">Provider number: {{node}}</div>
+            <button onclick="runYagnaCommand({{node}})" style="margin: 0.5em;">Check status</button>
             <table>
                 <tr><th>Status/Identity</th><td><div id="yagna_status_{{node}}"></div></td></tr>
 
@@ -23,6 +32,26 @@
 
         </div>
         {% endfor %}
+    </div>
+
+    <div id="myModal" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modal title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <code id="command_result"></code>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary">Save changes</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
     </div>
 </body>
 <script>
@@ -33,7 +62,7 @@
         $(`#stop_nodes_btn`).prop('disabled', true)
         $(`#start_nodes_btn`).prop('disabled', true);
         let startClosing = fetch(`/compose/down`, {
-            method: "GET", // *GET, POST, PUT, DELETE, etc.
+            method: "POST", // *GET, POST, PUT, DELETE, etc.
         });
 
         for (let node = 0; node < nodes.length; node++) {
@@ -47,12 +76,24 @@
         await refreshNodes();
     }
 
+    async function runYagnaCommand(no) {
+        let runUp = fetch(`/yagna/${no}/cli`, {
+            method: "POST",
+            body: "payment status --json",
+        });
+        let response = await runUp;
+        let resp = await response.text()
+        console.log(`response: ${response.status} ${resp}`);
+        $('#myModal').modal('toggle');
+        $('#command_result').html(resp);
+    }
+
     async function startNodes() {
         $(`#stop_nodes_btn`).prop('disabled', true)
         $(`#start_nodes_btn`).prop('disabled', true);
 
         let runUp = fetch(`/compose/up`, {
-            method: "GET", // *GET, POST, PUT, DELETE, etc.
+            method: "POST", // *GET, POST, PUT, DELETE, etc.
         });
 
         for (let node = 0; node < nodes.length; node++) {
