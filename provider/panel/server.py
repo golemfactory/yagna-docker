@@ -12,8 +12,10 @@ logger = logging.getLogger(__name__)
 env = Environment(loader=FileSystemLoader('templates'))
 
 
-class Server:
+class PanelServer:
     def __init__(self, logger):
+        self._site = None
+        self._runner = None
         self._logger = logger
         self._logger.info(f"Creating Server")
 
@@ -37,6 +39,9 @@ class Server:
             return web.Response(text=log)
 
         return web.Response(text=f"Yagna log for yagna no: {yagna_no}")
+
+    async def run_yanga_cli_command(self, cli):
+        pass
 
     async def check_yanga_up(self, request):
         yagna_no = int(request.match_info.get('no', 0))
@@ -88,6 +93,7 @@ class Server:
         await self._runner.setup()
         self._site = aiohttp.web.TCPSite(self._runner, host, port)
         await self._site.start()
+        logger.info(f"Server started at http://{host}:{port}")
 
     async def stop(self):
         self._logger.info("Server stopping...")
@@ -96,15 +102,3 @@ class Server:
         self._logger.info("Server stopped")
 
 
-async def main():
-    logging.basicConfig(level=logging.DEBUG)
-    loc_logger = logging.getLogger(__name__)
-    server = Server(loc_logger)
-    await server.start("0.0.0.0", 12834)
-
-    while True:
-        await asyncio.sleep(1)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
