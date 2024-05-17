@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - 'YAGNA_VERSION=${YAGNA_VERSION}'
+        - 'YAGNA_VERSION=${YAGNA_VERSION:-v0.15.0-deposits-beta5}'
     ports:
       - '8555:7465'
     command: golemsp run --payment-network testnet --no-interactive
@@ -24,7 +24,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - 'YAGNA_VERSION=${YAGNA_VERSION}'
+        - 'YAGNA_VERSION=${YAGNA_VERSION:-v0.15.0-deposits-beta5}'
     ports:
       - '8556:7465'
     command: golemsp run --payment-network testnet --no-interactive
