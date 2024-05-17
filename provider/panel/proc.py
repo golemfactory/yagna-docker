@@ -28,7 +28,11 @@ def read_stream_stderr(stream, context):
 
 def run_process_start(args):
     context = {}
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if os.name == "nt":
+        process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    else:
+        process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
     context["process"] = process
 
     # Create threads to read stdout and stderr concurrently
