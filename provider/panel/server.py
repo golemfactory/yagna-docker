@@ -58,6 +58,42 @@ class PanelServer:
         text = json.dumps(json.loads(text), indent=4)
         return web.Response(text=text)
 
+    async def list_docker_processes(self, request):
+        yagna_no = int(request.match_info.get('no', 0))
+
+        text = await run_process_async_text(f"docker exec provider-provider_{yagna_no}-1"
+                                            + " ps aux")
+        text = text.decode(encoding='utf-8')
+        processes = []
+        for line in text.split("\n"):
+            if line.startswith("USER"):
+                continue
+            if "aux" in line:
+                continue
+            spl = line.split()
+            if len(spl) < 11:
+                continue
+            command = spl[10]
+            args = spl[11:]
+            command_short = command.split("/")[-1]
+            process = {
+                "pid": spl[1],
+                "cpu": spl[2],
+                "mem": spl[3],
+                "vsz": spl[4],
+                "rss": spl[5],
+                "tty": spl[6],
+                "stat": spl[7],
+                "start": spl[8],
+                "time": spl[9],
+                "command": command_short,
+                "args": " ".join(args),
+                "command_path": command
+            }
+            processes.append(process)
+
+        return web.json_response(processes)
+
     async def check_yanga_up(self, request):
         yagna_no = int(request.match_info.get('no', 0))
         # get from uri:
@@ -101,6 +137,7 @@ class PanelServer:
         app.router.add_route("GET", "/web", lambda request: self.web(request))
         app.router.add_route("GET", "/yagna/{no}/log", lambda request: self.get_yagna_log(request))
         app.router.add_route("GET", "/yagna/{no}/isup", lambda request: self.check_yanga_up(request))
+        app.router.add_route("GET", "/yagna/{no}/proc", lambda request: self.list_docker_processes(request))
         app.router.add_route("POST", "/yagna/{no}/cli", lambda request: self.run_yanga_cli_command(request))
         app.router.add_route("POST", "/compose/down", lambda request: self.compose_down(request))
         app.router.add_route("POST", "/compose/up", lambda request: self.compose_up(request))

@@ -25,11 +25,15 @@
         <div style="padding: 1em; border: 1px solid gray; margin: 0.2em;">
             <div style="font-weight: bold;">Provider number: {{node}}</div>
             <button onclick="runYagnaCommand({{node}})" style="margin: 0.5em;">Payment status</button>
+            <button onclick="getProcessList({{node}})" style="margin: 0.5em;">Show processes</button>
             <table>
                 <tr><th>Status/Identity</th><td><div id="yagna_status_{{node}}"></div></td></tr>
 
             </table>
-
+            <div style="border: 1px solid blue; padding: 0.1em;">
+                <div style="font-weight: bold">Process list:</div>
+                <div id="proc_list_{{ node }}"></div>
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -88,6 +92,25 @@
         $('#command_result').html(resp);
     }
 
+    async function getProcessList(no) {
+         console.log(`getProcessList(${no})`);
+        let runUp = fetch(`/yagna/${no}/proc`, {
+            method: "GET"
+        });
+        let response = await runUp;
+        let resp = await response.json()
+
+
+        let html = "";
+        for (let i = 0; i < resp.length; i++) {
+            html += `<div>${resp[i]["command"]} (pid: ${resp[i]["pid"]}, cpu: ${resp[i]["cpu"]})</div>`;
+        }
+        $(`#proc_list_${no}`).html(html);
+        console.log(`response: ${response.status} ${resp}`);
+
+    }
+
+
     async function startNodes() {
         $(`#stop_nodes_btn`).prop('disabled', true)
         $(`#start_nodes_btn`).prop('disabled', true);
@@ -132,6 +155,7 @@
         let futures = [];
         for (let i = 0; i < nodes.length; i++) {
             futures.push(loadYagnaStatus(nodes[i], showChecking));
+            futures.push(getProcessList(nodes[i]))
         }
         await Promise.all(futures);
     }
@@ -147,7 +171,7 @@
             } catch (e) {
                 console.error(e);
             }
-            await new Promise(r => setTimeout(r, 10000));
+            await new Promise(r => setTimeout(r, 4000));
         }
     });
 </script>
