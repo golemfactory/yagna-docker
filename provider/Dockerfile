@@ -19,7 +19,7 @@ ARG YAGNA_VERSION
 
 # yagna installator normally asks for user input, so we need to set some environment variables to avoid that
 RUN GOLEM_ACCEPT_TOS=yes BATCH_MODE=yes YA_INSTALLER_CORE=${YAGNA_VERSION} ./as-provider.sh
-
+RUN wget https://github.com/golemfactory/golem-ftp/releases/download/v0.4.0-rc2/gftp-linux-x86_64.tar.xz && tar -xf gftp-linux-x86_64.tar.xz && rm gftp-linux-x86_64.tar.xz && mv gftp /usr/local/bin/
 
 
 
