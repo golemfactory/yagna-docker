@@ -24,7 +24,7 @@
         {% for node in nodes %}
         <div style="padding: 1em; border: 1px solid gray; margin: 0.2em;">
             <div style="font-weight: bold;">Provider number: {{node}}</div>
-            <button onclick="runYagnaCommand({{node}})" style="margin: 0.5em;">Check status</button>
+            <button onclick="runYagnaCommand({{node}})" style="margin: 0.5em;">Payment status</button>
             <table>
                 <tr><th>Status/Identity</th><td><div id="yagna_status_{{node}}"></div></td></tr>
 
@@ -44,7 +44,7 @@
             </button>
           </div>
           <div class="modal-body">
-            <code id="command_result"></code>
+            <textarea style="width: 100%; height: 500px; font-family: Consolas" id="command_result"></textarea>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-primary">Save changes</button>

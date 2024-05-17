@@ -55,8 +55,8 @@ class PanelServer:
         self._logger.info(f"Run yagna cli command for yagna no: {yagna_no}, command: {safe_text}")
 
         text = await run_process_async_text(f"docker exec provider-provider_{yagna_no}-1 yagna {text}")
-
-        return web.Response(text=f"Run yagna cli command for yagna no: {yagna_no}, command: {text}")
+        text = json.dumps(json.loads(text), indent=4)
+        return web.Response(text=text)
 
     async def check_yanga_up(self, request):
         yagna_no = int(request.match_info.get('no', 0))
