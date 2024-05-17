@@ -16,14 +16,20 @@
 </head>
 <body>
     <div style="padding: 0.6em; font-size: 1.4em; font-weight: bold">Your testnet</div>
-    <div style="padding: 0.2em;">
-        <button id="stop_nodes_btn" onclick="stopNodes()" style="margin: 0.5em;">Stop all nodes</button>
-        <button id="start_nodes_btn" onclick="startNodes()" style="margin: 0.5em;">Start nodes</button>
+
+    <div style="border: 1px solid indigo; padding: 0.3em;">
+        Compose commands:
+        <div style="padding: 0.2em;">
+            <button id="stop_nodes_btn" onclick="stopNodes()" style="margin: 0.5em;">Service down</button>
+            <button id="start_nodes_btn" onclick="startNodes()" style="margin: 0.5em;">Service up</button>
+        </div>
     </div>
     <div>
         {% for node in nodes %}
         <div style="padding: 1em; border: 1px solid gray; margin: 0.2em;">
             <div style="font-weight: bold;">Provider number: {{node}}</div>
+            <button onclick="startNode({{node}})" style="margin: 0.5em;">Start node</button>
+            <button onclick="stopNode({{node}})" style="margin: 0.5em;">Stop node</button>
             <button onclick="runYagnaCommand({{node}})" style="margin: 0.5em;">Payment status</button>
             <button onclick="getProcessList({{node}})" style="margin: 0.5em;">Show processes</button>
             <table>
@@ -110,6 +116,25 @@
 
     }
 
+    async function startNode(no) {
+        console.log(`startNode(${no})`);
+        let runUp = fetch(`/yagna/${no}/start`, {
+            method: "POST"
+        });
+        let response = await runUp;
+        let resp = await response.text()
+        console.log(`response: ${response.status} ${resp}`);
+    }
+
+    async function stopNode(no) {
+         console.log(`startNode(${no})`);
+        let runUp = fetch(`/yagna/${no}/stop`, {
+            method: "POST"
+        });
+        let response = await runUp;
+        let resp = await response.text()
+        console.log(`response: ${response.status} ${resp}`);
+    }
 
     async function startNodes() {
         $(`#stop_nodes_btn`).prop('disabled', true)

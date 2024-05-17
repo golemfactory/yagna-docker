@@ -118,14 +118,26 @@ class PanelServer:
         return web.json_response(response)
 
     async def compose_down(self, request):
-        self._logger.info("Stop dockers")
+        self._logger.info("docker compose down")
         os.system("docker compose down")
         return web.Response(text="Dockers stopped")
 
     async def compose_up(self, request):
-        self._logger.info("Stop dockers")
+        self._logger.info("docker compose up -d")
         os.system("docker compose up -d")
         return web.Response(text="Dockers started")
+
+    async def container_stop(self, request):
+        yagna_no = int(request.match_info.get('no', 0))
+        self._logger.info("Stop container no:")
+        await run_process_async_text(f"docker compose stop provider_{yagna_no}")
+        return web.Response(text="Docker stopped")
+
+    async def container_start(self, request):
+        yagna_no = int(request.match_info.get('no', 0))
+        self._logger.info("Stop container no:")
+        await run_process_async_text(f"docker compose start provider_{yagna_no}")
+        return web.Response(text="Docker stopped")
 
     async def start(
             self,
@@ -139,6 +151,8 @@ class PanelServer:
         app.router.add_route("GET", "/yagna/{no}/isup", lambda request: self.check_yanga_up(request))
         app.router.add_route("GET", "/yagna/{no}/proc", lambda request: self.list_docker_processes(request))
         app.router.add_route("POST", "/yagna/{no}/cli", lambda request: self.run_yanga_cli_command(request))
+        app.router.add_route("POST", "/yagna/{no}/start", lambda request: self.container_start(request))
+        app.router.add_route("POST", "/yagna/{no}/stop", lambda request: self.container_stop(request))
         app.router.add_route("POST", "/compose/down", lambda request: self.compose_down(request))
         app.router.add_route("POST", "/compose/up", lambda request: self.compose_up(request))
 
