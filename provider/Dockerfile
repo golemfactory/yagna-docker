@@ -2,12 +2,11 @@ ARG YAGNA_VERSION=v0.15.0-deposits-beta5
 
 # Full python toolset for ease of development
 # If you need something smaller, you can use ubuntu slim or alpine without python
-FROM python:latest
+FROM debian:bookworm
 
 # This tools are not needed but are helpful for debugging
 RUN apt-get update -y
-RUN apt-get install -y build-essential net-tools iputils-ping curl vim git wget unzip jq dnsutils tcpdump
-RUN pip install --upgrade pip
+RUN apt-get install -y build-essential net-tools iputils-ping curl vim git wget unzip jq dnsutils tcpdump procps
 
 # Download official installer
 RUN curl -L https://join.golem.network/as-provider --output as-provider.sh

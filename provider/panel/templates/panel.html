@@ -29,7 +29,10 @@
     <div>
         {% for node in nodes %}
         <div style="padding: 1em; border: 1px solid gray; margin: 0.2em;">
-            <div style="font-weight: bold;">Provider number: {{node}}</div>
+            <div style="font-weight: bold;">
+                Provider number: {{node}}
+                (Subnet: <span style="font-weight: bold;" id="subnet_name_{{ node }}"></span>)
+            </div>
             <button onclick="startNode({{node}})" style="margin: 0.5em;">Start node</button>
             <button onclick="restartNode({{node}})" style="margin: 0.5em;">Restart node</button>
             <button onclick="stopNode({{node}})" style="margin: 0.5em;">Stop node</button>
@@ -38,9 +41,14 @@
             <table>
                 <tr><th>Status/Identity</th><td><div id="yagna_status_{{node}}"></div></td></tr>
             </table>
+            <div>Subnet name:</div>
             <div style="border: 1px solid blue; padding: 0.1em;">
                 <div style="font-weight: bold">Process list:</div>
                 <div id="proc_list_{{ node }}"></div>
+            </div>
+            <div style="border: 1px solid blue; padding: 0.1em;">
+                <div style="font-weight: bold">Env list:</div>
+                <div id="env_list_{{ node }}"></div>
             </div>
         </div>
         {% endfor %}
@@ -118,7 +126,28 @@
         }
         $(`#proc_list_${no}`).html(html);
         console.log(`response: ${response.status} ${resp}`);
+    }
+    async function getEnv(no) {
+        console.log(`getEnvList(${no})`);
+        let runUp = fetch(`/yagna/${no}/env`, {
+            method: "GET"
+        });
+        let response = await runUp;
+        let resp = await response.json()
 
+        let html = "";
+        let subnet_name = "";
+        for (let name in resp) {
+            let value = resp[name];
+            if (name === "SUBNET") {
+                subnet_name = value;
+            }
+            html += `<div>${name}:${value}</div>`;
+        }
+        $(`#env_list_${no}`).html(html);
+        $(`#subnet_name_${no}`).html(subnet_name);
+
+        console.log(`response: ${response.status} ${resp}`);
     }
 
     async function startNode(no) {
@@ -224,6 +253,7 @@
         for (let i = 0; i < nodes.length; i++) {
             futures.push(loadYagnaStatus(nodes[i], showChecking));
             futures.push(getProcessList(nodes[i]))
+            futures.push(getEnv(nodes[i]))
         }
         await Promise.all(futures);
     }

@@ -124,7 +124,7 @@ class PanelServer:
 
     async def compose_up(self, request):
         os.system("docker build -t yagna-provider .")
-        self._logger.info("docker compose up -d --build --remove-orphans")
+        self._logger.info("docker compose up -d --remove-orphans")
         os.system("docker compose up -d")
         return web.Response(text="Dockers started")
 
@@ -160,6 +160,22 @@ class PanelServer:
         await run_process_async_text(f"docker exec provider-provider_{yagna_no}-1 {kill_command} {proc_id}")
         return web.Response(text=f"Killed process {proc_id}")
 
+    async def get_docker_env(self, request):
+        yagna_no = int(request.match_info.get('no', 0))
+        self._logger.info(f"Get docker env for yagna no: {yagna_no}")
+        text = await run_process_async_text(f"docker exec provider-provider_{yagna_no}-1 env")
+        text = text.decode(encoding='utf-8')
+        results = {}
+        for line in text.split("\n"):
+            try: # Ignore invalid lines
+                key, value = line.split("=")
+                results[key] = value
+            except Exception as e:
+                logger.error(f"Error parsing line: {line}")
+                continue
+
+        return web.json_response(results)
+
     async def start(
             self,
             host: str,
@@ -171,6 +187,7 @@ class PanelServer:
         app.router.add_route("GET", "/yagna/{no}/log", lambda request: self.get_yagna_log(request))
         app.router.add_route("GET", "/yagna/{no}/isup", lambda request: self.check_yanga_up(request))
         app.router.add_route("GET", "/yagna/{no}/proc", lambda request: self.list_docker_processes(request))
+        app.router.add_route("GET", "/yagna/{no}/env", lambda request: self.get_docker_env(request))
         app.router.add_route("POST", "/yagna/{no}/cli", lambda request: self.run_yanga_cli_command(request))
         app.router.add_route("POST", "/yagna/{no}/start", lambda request: self.container_start(request))
         app.router.add_route("POST", "/yagna/{no}/restart", lambda request: self.container_restart(request))
