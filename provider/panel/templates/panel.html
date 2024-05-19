@@ -22,6 +22,8 @@
         <div style="padding: 0.2em;">
             <button id="stop_nodes_btn" onclick="stopNodes()" style="margin: 0.5em;">Service down</button>
             <button id="start_nodes_btn" onclick="startNodes()" style="margin: 0.5em;">Service up</button>
+            <input id="subnet_name" type="text" value="{{ subnet_name }}" />
+            <button onclick="">Set subnet name</button>
         </div>
     </div>
     <div>
@@ -31,10 +33,10 @@
             <button onclick="startNode({{node}})" style="margin: 0.5em;">Start node</button>
             <button onclick="restartNode({{node}})" style="margin: 0.5em;">Restart node</button>
             <button onclick="stopNode({{node}})" style="margin: 0.5em;">Stop node</button>
+            <button onclick="killNode({{node}})" style="margin: 0.5em;">Kill node</button>
             <button onclick="runYagnaCommand({{node}})" style="margin: 0.5em;">Payment status</button>
             <table>
                 <tr><th>Status/Identity</th><td><div id="yagna_status_{{node}}"></div></td></tr>
-
             </table>
             <div style="border: 1px solid blue; padding: 0.1em;">
                 <div style="font-weight: bold">Process list:</div>
@@ -109,7 +111,10 @@
 
         let html = "";
         for (let i = 0; i < resp.length; i++) {
-            html += `<div>${resp[i]["command"]} (pid: ${resp[i]["pid"]}, cpu: ${resp[i]["cpu"]})</div>`;
+            html += `<div>${resp[i]["command"]} (pid: ${resp[i]["pid"]}, cpu: ${resp[i]["cpu"]})`;
+            html += `<button onclick="stopProcess(${no}, ${resp[i]["pid"]})">Stop</button>`;
+            html += `<button onclick="killProcess(${no}, ${resp[i]["pid"]})">Kill</button>`;
+            html += "</div>"
         }
         $(`#proc_list_${no}`).html(html);
         console.log(`response: ${response.status} ${resp}`);
@@ -129,6 +134,44 @@
     async function stopNode(no) {
          console.log(`startNode(${no})`);
         let runUp = fetch(`/yagna/${no}/stop`, {
+            method: "POST"
+        });
+        let response = await runUp;
+        let resp = await response.text()
+        console.log(`response: ${response.status} ${resp}`);
+    }
+
+    async function restartNode(no) {
+         console.log(`startNode(${no})`);
+        let runUp = fetch(`/yagna/${no}/restart`, {
+            method: "POST"
+        });
+        let response = await runUp;
+        let resp = await response.text()
+        console.log(`response: ${response.status} ${resp}`);
+    }
+
+
+    async function killNode(no) {
+        let runUp = fetch(`/yagna/${no}/kill`, {
+            method: "POST"
+        });
+        let response = await runUp;
+        let resp = await response.text()
+        console.log(`response: ${response.status} ${resp}`);
+    }
+
+    async function stopProcess(no, pid) {
+        let runUp = fetch(`/yagna/${no}/proc/${pid}/stop`, {
+            method: "POST"
+        });
+        let response = await runUp;
+        let resp = await response.text()
+        console.log(`response: ${response.status} ${resp}`);
+    }
+
+    async function killProcess(no, pid) {
+        let runUp = fetch(`/yagna/${no}/proc/${pid}/kill`, {
             method: "POST"
         });
         let response = await runUp;
@@ -183,6 +226,10 @@
             futures.push(getProcessList(nodes[i]))
         }
         await Promise.all(futures);
+    }
+
+    function setSubnetName() {
+
     }
 
     document.addEventListener('DOMContentLoaded', async function () {

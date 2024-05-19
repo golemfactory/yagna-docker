@@ -1,3 +1,5 @@
+ARG YAGNA_VERSION=v0.15.0-deposits-beta5
+
 # Full python toolset for ease of development
 # If you need something smaller, you can use ubuntu slim or alpine without python
 FROM python:latest
