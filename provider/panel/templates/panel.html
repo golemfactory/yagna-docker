@@ -23,7 +23,7 @@
             <button id="stop_nodes_btn" onclick="stopNodes()" style="margin: 0.5em;">Service down</button>
             <button id="start_nodes_btn" onclick="startNodes()" style="margin: 0.5em;">Service up</button>
             <input id="subnet_name" type="text" value="{{ subnet_name }}" />
-            <button onclick="">Set subnet name</button>
+            <button onclick="setSubnetName()">Set subnet name</button>
         </div>
     </div>
     <div>
@@ -259,6 +259,17 @@
     }
 
     function setSubnetName() {
+        let subnet_name = $('#subnet_name').val();
+
+        let runUp = fetch(`/compose/regenerate`, {
+            method: "POST",
+            body: JSON.stringify({
+                provCount: 2,
+                exposePorts: true,
+                providerPrefix: "dock-prov",
+                subnet: subnet_name
+            }),
+        });
 
     }
 

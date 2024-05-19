@@ -7,6 +7,7 @@ import aiohttp
 from aiohttp import web
 from jinja2 import Environment, FileSystemLoader
 
+from gen_compose import generate_compose_file
 from panel.proc import run_process_async, run_process_async_text
 
 logger = logging.getLogger(__name__)
@@ -176,6 +177,24 @@ class PanelServer:
 
         return web.json_response(results)
 
+    async def regenerate_compose_file(self, request):
+        self._logger.info("Regenerate docker compose file")
+        json_data = await request.json()
+        number_of_providers = json_data.get("provCount", 2)
+        expose_ports = json_data.get("exposePorts", True)
+        provider_name_prefix = json_data.get("providerPrefix", "dock-prov")
+        subnet = json_data.get("subnet", "change_me")
+        new_file = generate_compose_file(
+            number_of_providers=number_of_providers,
+            expose_ports=expose_ports,
+            provider_name_prefix=provider_name_prefix,
+            subnet=subnet
+        )
+        with open("docker-compose.yml", "w") as f:
+            f.write(new_file)
+
+        return web.Response(text="Docker compose file regenerated")
+
     async def start(
             self,
             host: str,
@@ -199,6 +218,8 @@ class PanelServer:
                              lambda request: self.kill_container_process(request, True))
         app.router.add_route("POST", "/compose/down", lambda request: self.compose_down(request))
         app.router.add_route("POST", "/compose/up", lambda request: self.compose_up(request))
+        app.router.add_route("POST", "/compose/regenerate", lambda request: self.regenerate_compose_file(request))
+
 
         self._runner = aiohttp.web.AppRunner(app)
         await self._runner.setup()

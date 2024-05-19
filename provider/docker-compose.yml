@@ -10,6 +10,7 @@ services:
       - node_env.env
     environment:
       - NODE_NAME=dock-prov_0
+      - SUBNET=change_me
     volumes:
       - './dock_prov_0/ya-provider:/root/.local/share/ya-provider'
       - './dock_prov_0/yagna:/root/.local/share/yagna'
@@ -24,6 +25,7 @@ services:
       - node_env.env
     environment:
       - NODE_NAME=dock-prov_1
+      - SUBNET=change_me
     volumes:
       - './dock_prov_1/ya-provider:/root/.local/share/ya-provider'
       - './dock_prov_1/yagna:/root/.local/share/yagna'
