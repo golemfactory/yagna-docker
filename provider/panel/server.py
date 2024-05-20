@@ -257,6 +257,8 @@ class PanelServer:
             params = json.loads(data)
 
             number_of_providers = int(params["provCount"])
+            if number_of_providers > 30:
+                return web.Response(text="Too many providers - max 30", status=400)
             expose_ports = params.get("exposePorts", True)
             provider_name_prefix = params["providerPrefix"]
             subnet = params["subnet"]
