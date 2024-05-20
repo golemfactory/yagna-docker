@@ -184,9 +184,10 @@ async function getComposeParams() {
 
     let imageParams = resp['image'];
     let composeParams = resp['compose'];
-    $('#image_yagna_version').val(imageParams['yagnaVersion']);
 
-    // jquery check if enabled
+    if ($('#image_yagna_version').prop('disabled')) {
+        $('#image_yagna_version').val(imageParams['yagnaVersion']);
+    }
     if ($('#subnet_name').prop('disabled')) {
         $('#subnet_name').val(composeParams['subnet']);
     }
