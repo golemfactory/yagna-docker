@@ -78,10 +78,12 @@
 
     let nodes = {{ nodes }};
 
+    // extract last folder
+    let baseUrl = window.location.href.split('/').slice(0, -1).join('/');
     async function stopNodes() {
         $(`#stop_nodes_btn`).prop('disabled', true)
         $(`#start_nodes_btn`).prop('disabled', true);
-        let startClosing = fetch(`/compose/down`, {
+        let startClosing = fetch(`${baseUrl}/compose/down`, {
             method: "POST", // *GET, POST, PUT, DELETE, etc.
         });
 
@@ -97,7 +99,7 @@
     }
 
     async function runYagnaCommand(no) {
-        let runUp = fetch(`/yagna/${no}/cli`, {
+        let runUp = fetch(`${baseUrl}/yagna/${no}/cli`, {
             method: "POST",
             body: "payment status --json",
         });
@@ -110,7 +112,7 @@
 
     async function getProcessList(no) {
          console.log(`getProcessList(${no})`);
-        let runUp = fetch(`/yagna/${no}/proc`, {
+        let runUp = fetch(`${baseUrl}/yagna/${no}/proc`, {
             method: "GET"
         });
         let response = await runUp;
@@ -129,7 +131,7 @@
     }
     async function getEnv(no) {
         console.log(`getEnvList(${no})`);
-        let runUp = fetch(`/yagna/${no}/env`, {
+        let runUp = fetch(`${baseUrl}/yagna/${no}/env`, {
             method: "GET"
         });
         let response = await runUp;
@@ -152,7 +154,7 @@
 
     async function startNode(no) {
         console.log(`startNode(${no})`);
-        let runUp = fetch(`/yagna/${no}/start`, {
+        let runUp = fetch(`${baseUrl}/yagna/${no}/start`, {
             method: "POST"
         });
         let response = await runUp;
@@ -162,7 +164,7 @@
 
     async function stopNode(no) {
          console.log(`startNode(${no})`);
-        let runUp = fetch(`/yagna/${no}/stop`, {
+        let runUp = fetch(`${baseUrl}/yagna/${no}/stop`, {
             method: "POST"
         });
         let response = await runUp;
@@ -172,7 +174,7 @@
 
     async function restartNode(no) {
          console.log(`startNode(${no})`);
-        let runUp = fetch(`/yagna/${no}/restart`, {
+        let runUp = fetch(`${baseUrl}/yagna/${no}/restart`, {
             method: "POST"
         });
         let response = await runUp;
@@ -182,7 +184,7 @@
 
 
     async function killNode(no) {
-        let runUp = fetch(`/yagna/${no}/kill`, {
+        let runUp = fetch(`${baseUrl}/yagna/${no}/kill`, {
             method: "POST"
         });
         let response = await runUp;
@@ -191,7 +193,7 @@
     }
 
     async function stopProcess(no, pid) {
-        let runUp = fetch(`/yagna/${no}/proc/${pid}/stop`, {
+        let runUp = fetch(`${baseUrl}/yagna/${no}/proc/${pid}/stop`, {
             method: "POST"
         });
         let response = await runUp;
@@ -200,7 +202,7 @@
     }
 
     async function killProcess(no, pid) {
-        let runUp = fetch(`/yagna/${no}/proc/${pid}/kill`, {
+        let runUp = fetch(`${baseUrl}/yagna/${no}/proc/${pid}/kill`, {
             method: "POST"
         });
         let response = await runUp;
@@ -212,7 +214,7 @@
         $(`#stop_nodes_btn`).prop('disabled', true)
         $(`#start_nodes_btn`).prop('disabled', true);
 
-        let runUp = fetch(`/compose/up`, {
+        let runUp = fetch(`${baseUrl}/compose/up`, {
             method: "POST", // *GET, POST, PUT, DELETE, etc.
         });
 
@@ -232,7 +234,7 @@
             $(`#yagna_status_${node}`).html("checking...");
         }
 
-        const response = await fetch(`/yagna/${node}/isup`, {
+        const response = await fetch(`${baseUrl}/yagna/${node}/isup`, {
             method: "GET", // *GET, POST, PUT, DELETE, etc.
         });
         let resp = await response.text();
@@ -261,7 +263,7 @@
     function setSubnetName() {
         let subnet_name = $('#subnet_name').val();
 
-        let runUp = fetch(`/compose/regenerate`, {
+        let runUp = fetch(`${baseUrl}/compose/regenerate`, {
             method: "POST",
             body: JSON.stringify({
                 provCount: 2,
