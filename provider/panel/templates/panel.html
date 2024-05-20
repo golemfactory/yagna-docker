@@ -22,8 +22,18 @@
         <div style="padding: 0.2em;">
             <button id="stop_nodes_btn" onclick="stopNodes()" style="margin: 0.5em;">Service down</button>
             <button id="start_nodes_btn" onclick="startNodes()" style="margin: 0.5em;">Service up</button>
-            <input id="subnet_name" type="text" value="{{ subnet_name }}" />
-            <button onclick="setSubnetName()">Set subnet name</button>
+            <input disabled="disabled" id="subnet_name" type="text" />
+            <input disabled="disabled" id="provider_count" type="text" />
+            <input disabled="disabled" id="provider_prefix" type="text" />
+        </div>
+        <div>
+        <div>
+            <input disabled="disabled" id="image_yagna_version" type="text" />
+        </div>
+        <div>
+            <button id="btn_edit_params" onclick="editParams()">Edit params</button>
+            <button id="btn_cancel_params" onclick="cancelParams()">Cancel</button>
+            <button id="btn_confirm_params" onclick="confirmParams()">Confirm changes</button>
         </div>
     </div>
     <div>
@@ -111,7 +121,7 @@
     }
 
     async function getProcessList(no) {
-         console.log(`getProcessList(${no})`);
+        console.log(`getProcessList(${no})`);
         let runUp = fetch(`${baseUrl}/yagna/${no}/proc`, {
             method: "GET"
         });
@@ -163,7 +173,7 @@
     }
 
     async function stopNode(no) {
-         console.log(`startNode(${no})`);
+        console.log(`startNode(${no})`);
         let runUp = fetch(`${baseUrl}/yagna/${no}/stop`, {
             method: "POST"
         });
@@ -250,6 +260,46 @@
         console.log(`response: ${response.status} ${response.statusText}`);
     }
 
+    async function getImageParams() {
+        console.log(`getImageParams()`);
+        let runUp = fetch(`${baseUrl}/compose/image/params`, {
+            method: "GET"
+        });
+        let response = await runUp;
+        let resp = await response.json()
+
+        $('#image_yagna_version').val(resp['yagnaVersion']);
+    }
+
+    async function getComposeParams() {
+        console.log(`getComposeParams()`);
+        let runUp = fetch(`${baseUrl}/compose/params`, {
+            method: "GET"
+        });
+        let response = await runUp;
+        let resp = await response.json()
+
+        // jquery check if enabled
+        if ($('#subnet_name').prop('disabled')) {
+            $('#subnet_name').val(resp['subnet']);
+        }
+        if ($('#provider_count').prop('disabled')) {
+            $('#provider_count').val(resp['provCount']);
+        }
+        if ($('#provider_prefix').prop('disabled')) {
+            $('#provider_prefix').val(resp['providerPrefix']);
+        }
+    }
+
+    function editParams() {
+        $('#subnet_name').prop('disabled', false);
+        $('#provider_count').prop('disabled', false);
+        $('#provider_prefix').prop('disabled', false);
+        $('#image_yagna_version').prop('disabled', false);
+        $('#subnet_name').val('');
+    }
+
+
     async function refreshNodes(showChecking) {
         let futures = [];
         for (let i = 0; i < nodes.length; i++) {
@@ -257,6 +307,8 @@
             futures.push(getProcessList(nodes[i]))
             futures.push(getEnv(nodes[i]))
         }
+        futures.push(getImageParams());
+        futures.push(getComposeParams());
         await Promise.all(futures);
     }
 
@@ -278,7 +330,6 @@
     document.addEventListener('DOMContentLoaded', async function () {
         console.log('DOM fully loaded and parsed');
         await refreshNodes(true);
-
 
         while (true) {
             try {

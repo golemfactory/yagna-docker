@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 
 # Set up logging
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 # Description: This is a template for the docker-compose file.
 # You can use it as base for building your own custom docker-compose file.
 TEMPLATE = """  provider_%%PROVIDER_NO%%:
-    image: yagna-provider
+    image: %%IMAGE_NAME%%
 %%TEMPLATE_PORTS%%    command: golemsp run --payment-network testnet --no-interactive
     devices:
       - /dev/kvm
@@ -33,7 +34,8 @@ def generate_compose_file(
         number_of_providers: int = 2,
         expose_ports: bool = False,
         provider_name_prefix: str = "dock-prov",
-        subnet: str = "change_me") -> str:
+        subnet: str = "change_me",
+        image_name: str = "yagna-docker") -> str:
     comp_file = ""
     comp_file += "services:\n"
     for provider_no in range(0, number_of_providers):
@@ -45,6 +47,7 @@ def generate_compose_file(
         entr = entr.replace("%%TEMPLATE_PORTS%%", ports)
         entr = entr.replace("%%PROVIDER_NAME_PREFIX%%", provider_name_prefix)
         entr = entr.replace("%%SUBNET%%", subnet)
+        entr = entr.replace("%%IMAGE_NAME%%", image_name)
         comp_file += entr
     return comp_file
 
@@ -60,6 +63,8 @@ def main():
                       default="dock-prov")
     args.add_argument("--subnet", type=str, help="Subnet for the providers",
                       default="change_me")
+    args.add_argument("--image-name", type=str, help="Image name for the providers",
+                      default="yagna-provider")
 
     args = args.parse_args()
     num_prov = args.num_providers
@@ -67,7 +72,8 @@ def main():
         number_of_providers=num_prov,
         expose_ports=not args.no_ports,
         provider_name_prefix=args.provider_name_prefix,
-        subnet=args.subnet)
+        subnet=args.subnet,
+        image_name="yagna-provider")
 
     with open(args.output_file, "w") as f:
         logger.info(f"Writing to file {args.output_file}")
