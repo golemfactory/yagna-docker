@@ -18,6 +18,7 @@ async function stopNodes() {
     $(`#start_nodes_btn`).prop('disabled', false);
 
     await refreshNodes();
+
 }
 
 async function runYagnaCommand(no) {
@@ -181,7 +182,7 @@ async function getImageParams() {
     let response = await runUp;
     let resp = await response.json()
 
-    $('#image_yagna_version').val(resp['yagnaVersion']);
+
 }
 
 async function getComposeParams() {
@@ -192,16 +193,23 @@ async function getComposeParams() {
     let response = await runUp;
     let resp = await response.json()
 
+    let imageParams = resp['image'];
+    let composeParams = resp['compose'];
+    $('#image_yagna_version').val(imageParams['yagnaVersion']);
+
     // jquery check if enabled
     if ($('#subnet_name').prop('disabled')) {
-        $('#subnet_name').val(resp['subnet']);
+        $('#subnet_name').val(composeParams['subnet']);
     }
     if ($('#provider_count').prop('disabled')) {
-        $('#provider_count').val(resp['provCount']);
+        $('#provider_count').val(composeParams['provCount']);
     }
     if ($('#provider_prefix').prop('disabled')) {
-        $('#provider_prefix').val(resp['providerPrefix']);
+        $('#provider_prefix').val(composeParams['providerPrefix']);
     }
+
+    $(`#main_view`).show();
+
 }
 
 function editParams() {
@@ -212,7 +220,16 @@ function editParams() {
     $('#btn_edit_params').hide();
     $('#btn_save_params').show();
     $('#btn_cancel_params').show();
-
+}
+function cancelParams() {
+    $('#subnet_name').prop('disabled', true);
+    $('#provider_count').prop('disabled', true);
+    $('#provider_prefix').prop('disabled', true);
+    $('#image_yagna_version').prop('disabled', true);
+    $('#btn_edit_params').show();
+    $('#btn_save_params').hide();
+    $('#btn_cancel_params').hide();
+    getComposeParams();
 }
 
 async function saveParams() {
@@ -232,15 +249,26 @@ async function saveParams() {
     let runUp = fetch(`${baseUrl}/compose/params`, {
         method: "POST",
         body: JSON.stringify({
-            subnet: subnet_name,
-            provCount: provider_count,
-            providerPrefix: provider_prefix,
-            yagnaVersion: yagna_version
+            "compose": {
+                subnet: subnet_name,
+                provCount: provider_count,
+                providerPrefix: provider_prefix,
+            },
+            "image": {
+                yagnaVersion: yagna_version
+            }
         }),
     });
 
     await runUp;
 
+    {
+        let runUp = fetch(`${baseUrl}/compose/regenerate`, {
+            method: "POST"
+        });
+
+        await runUp;
+    }
 }
 
 async function refreshNodes(showChecking) {
@@ -253,20 +281,6 @@ async function refreshNodes(showChecking) {
     futures.push(getImageParams());
     futures.push(getComposeParams());
     await Promise.all(futures);
-}
-
-function setSubnetName() {
-    let subnet_name = $('#subnet_name').val();
-
-    let runUp = fetch(`${baseUrl}/compose/regenerate`, {
-        method: "POST",
-        body: JSON.stringify({
-            provCount: 2,
-            exposePorts: true,
-            providerPrefix: "dock-prov",
-            subnet: subnet_name
-        }),
-    });
 
 }
 

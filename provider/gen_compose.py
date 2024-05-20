@@ -35,7 +35,7 @@ def generate_compose_file(
         expose_ports: bool = False,
         provider_name_prefix: str = "dock-prov",
         subnet: str = "change_me",
-        image_name: str = "yagna-docker") -> str:
+        image_name: str = "yagna-provider") -> str:
     comp_file = ""
     comp_file += "services:\n"
     for provider_no in range(0, number_of_providers):

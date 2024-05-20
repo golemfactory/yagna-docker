@@ -15,9 +15,9 @@
     <title>Command panel</title>
 </head>
 <body>
-    <div style="padding: 0.6em; font-size: 1.4em; font-weight: bold">Your testnet</div>
+    <div style="padding: 0.6em; font-size: 1.4em; font-weight: bold">Your testnet - {{ computer_name }} - {{ current_dir }}</div>
 
-    <div style="border: 1px solid indigo; padding: 0.3em;">
+    <div id="main_view" style="display:none; border: 1px solid indigo; padding: 0.3em;">
         Compose commands:
         <div style="padding: 0.2em;">
             <button id="stop_nodes_btn" onclick="stopNodes()" style="margin: 0.5em;">Service down</button>
@@ -33,7 +33,7 @@
         <div>
             <button id="btn_edit_params" onclick="editParams()">Edit params</button>
             <button id="btn_cancel_params" style="display: none" onclick="cancelParams()">Cancel</button>
-            <button id="btn_save_params" style="display: none" onclick="confirmParams()">Confirm changes</button>
+            <button id="btn_save_params" style="display: none" onclick="saveParams()">Confirm changes</button>
         </div>
     </div>
     <div>

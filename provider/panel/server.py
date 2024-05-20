@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os.path
+import socket
 
 import aiohttp
 from aiohttp import web
@@ -26,9 +27,18 @@ class PanelServer:
         return web.Response(text="Hello from command server")
 
     async def web(self, request):
+        computer_name = socket.gethostname()
+        current_directory = os.getcwd()
+        computer_name = os.environ.get("COMPUTERNAME", "Unknown")
+        current_dir = os.path.dirname(os.path.abspath(__file__))
         template = env.get_template('panel.html')
-        nodes = [0, 1]
-        return web.Response(text=template.render(nodes=nodes), content_type="text/html")
+        params = self.load_compose_params()
+        nodes = list(range(0, int(params["provCount"])))
+        return web.Response(text=template.render(
+            nodes=nodes,
+            computer_name=computer_name,
+            current_dir=current_dir,
+        ), content_type="text/html")
 
     async def get_yagna_log(self, request):
         yagna_no = int(request.match_info.get('no', 0))
@@ -186,7 +196,6 @@ class PanelServer:
                 "exposePorts": True,
                 "providerPrefix": "dock-prov",
                 "subnet": "change_me",
-                "currentImageName": "yagna-provider"
             }
             compose_params.write(json.dumps(data, indent=4))
 
@@ -218,47 +227,45 @@ class PanelServer:
         return params
 
     async def compose_params(self, request):
-        params = self.load_compose_params()
-        return web.json_response(params)
+        compose_params = self.load_compose_params()
+        image_params = self.load_image_params()
+        result = {
+            "compose": compose_params,
+            "image": image_params
+        }
+        return web.json_response(result)
 
-    async def image_params(self, request):
-        params = self.load_image_params()
-        return web.json_response(params)
+    async def set_compose_params(self, request):
+        self._logger.info("Set compose params")
+        json_data = await request.json()
+        compose_params = json_data.get("compose", {})
+        image_params = json_data.get("image", {})
+        if compose_params:
+            with open("compose-params.json", "w") as compose_params_file:
+                compose_params_file.write(json.dumps(compose_params, indent=4))
+        if image_params:
+            with open("image-params.json", "w") as image_params_file:
+                image_params_file.write(json.dumps(image_params, indent=4))
+        return web.Response(text="Compose params set")
+
 
     async def regenerate_compose_file(self, request):
         self._logger.info("Regenerate docker compose file")
-        json_data = await request.json()
-        number_of_providers = json_data.get("provCount", 2)
-        expose_ports = json_data.get("exposePorts", True)
-        provider_name_prefix = json_data.get("providerPrefix", "dock-prov")
-        subnet = json_data.get("subnet", "change_me")
 
-        if not os.path.isfile("compose_params.json"):
-            with open("compose_params.json", "w") as compose_params:
-                data = {
-                    "provCount": number_of_providers,
-                    "exposePorts": expose_ports,
-                    "providerPrefix": provider_name_prefix,
-                    "subnet": subnet,
-                    "currentImageName": "yagna-provider"
-                }
-                compose_params.write(json.dumps(data, indent=4))
-
-        with open("compose_params.json", "r") as compose_params:
+        with open("compose-params.json", "r") as compose_params:
             data = compose_params.read()
             params = json.loads(data)
 
-            provider_no = params["provCount"]
-            expose_ports = params["exposePorts"]
+            number_of_providers = int(params["provCount"])
+            expose_ports = params.get("exposePorts", True)
             provider_name_prefix = params["providerPrefix"]
             subnet = params["subnet"]
-            image_name = params["currentImageName"]
 
             new_file = generate_compose_file(
                 number_of_providers=number_of_providers,
                 expose_ports=expose_ports,
                 provider_name_prefix=provider_name_prefix,
-                subnet=subnet
+                subnet=subnet,
             )
             with open("docker-compose.yml", "w") as f:
                 f.write(new_file)
@@ -287,7 +294,7 @@ class PanelServer:
         app.router.add_route("POST", "/yagna/{no}/proc/{proc_id}/kill",
                              lambda request: self.kill_container_process(request, True))
         app.router.add_route("GET", "/compose/params", lambda request: self.compose_params(request))
-        app.router.add_route("GET", "/compose/image/params", lambda request: self.image_params(request))
+        app.router.add_route("POST", "/compose/params", lambda request: self.set_compose_params(request))
         app.router.add_route("POST", "/compose/down", lambda request: self.compose_down(request))
         app.router.add_route("POST", "/compose/up", lambda request: self.compose_up(request))
         app.router.add_route("POST", "/compose/regenerate", lambda request: self.regenerate_compose_file(request))
