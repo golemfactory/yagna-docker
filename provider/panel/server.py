@@ -138,7 +138,7 @@ class PanelServer:
         yagna_version = params["yagnaVersion"]
         os.system(f"docker build -t yagna-provider --build-arg YAGNA_VERSION={yagna_version} .")
         self._logger.info("docker compose up -d --remove-orphans")
-        os.system("docker compose up -d")
+        os.system("docker compose up -d --remove-orphans")
         return web.Response(text="Dockers started")
 
     async def container_stop(self, request):
@@ -250,6 +250,13 @@ class PanelServer:
                 image_params_file.write(json.dumps(image_params, indent=4))
         return web.Response(text="Compose params set")
 
+    async def reset_compose_params_req(self, request):
+        if os.path.isfile("compose-params.json"):
+            os.remove("compose-params.json")
+        if os.path.isfile("image-params.json"):
+            os.remove("image-params.json")
+        self.load_compose_params()
+        return web.Response(text="Compose params reset")
 
     async def regenerate_compose_file(self, request):
         self._logger.info("Regenerate docker compose file")
@@ -299,6 +306,7 @@ class PanelServer:
                              lambda request: self.kill_container_process(request, True))
         app.router.add_route("GET", "/compose/params", lambda request: self.compose_params(request))
         app.router.add_route("POST", "/compose/params", lambda request: self.set_compose_params(request))
+        app.router.add_route("POST", "/compose/params/reset", lambda request: self.reset_compose_params_req(request))
         app.router.add_route("POST", "/compose/down", lambda request: self.compose_down(request))
         app.router.add_route("POST", "/compose/up", lambda request: self.compose_up(request))
         app.router.add_route("POST", "/compose/regenerate", lambda request: self.regenerate_compose_file(request))

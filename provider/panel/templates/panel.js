@@ -174,17 +174,6 @@ async function loadYagnaStatus(node, showChecking) {
     console.log(`response: ${response.status} ${response.statusText}`);
 }
 
-async function getImageParams() {
-    console.log(`getImageParams()`);
-    let runUp = fetch(`${baseUrl}/compose/image/params`, {
-        method: "GET"
-    });
-    let response = await runUp;
-    let resp = await response.json()
-
-
-}
-
 async function getComposeParams() {
     console.log(`getComposeParams()`);
     let runUp = fetch(`${baseUrl}/compose/params`, {
@@ -220,7 +209,20 @@ function editParams() {
     $('#btn_edit_params').hide();
     $('#btn_save_params').show();
     $('#btn_cancel_params').show();
+    $('#btn_reset_params').hide();
 }
+
+async function resetParams() {
+    if (confirm("Are you sure you want to reset the parameters?")) {
+        let runup = fetch(`${baseUrl}/compose/params/reset`, {
+            method: "POST"
+        });
+        await runup;
+        await refreshNodes();
+    }
+
+}
+
 function cancelParams() {
     $('#subnet_name').prop('disabled', true);
     $('#provider_count').prop('disabled', true);
@@ -229,6 +231,7 @@ function cancelParams() {
     $('#btn_edit_params').show();
     $('#btn_save_params').hide();
     $('#btn_cancel_params').hide();
+    $('#btn_reset_params').show();
     getComposeParams();
 }
 
@@ -240,6 +243,7 @@ async function saveParams() {
     $('#btn_edit_params').show();
     $('#btn_save_params').hide();
     $('#btn_cancel_params').hide();
+    $('#btn_reset_params').show();
 
     let subnet_name = $('#subnet_name').val();
     let provider_count = $('#provider_count').val();
@@ -278,7 +282,6 @@ async function refreshNodes(showChecking) {
         futures.push(getProcessList(nodes[i]))
         futures.push(getEnv(nodes[i]))
     }
-    futures.push(getImageParams());
     futures.push(getComposeParams());
     await Promise.all(futures);
 
