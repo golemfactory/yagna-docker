@@ -47,7 +47,8 @@
             <button onclick="restartNode({{node}})" style="margin: 0.5em;">Restart node</button>
             <button onclick="stopNode({{node}})" style="margin: 0.5em;">Stop node</button>
             <button onclick="killNode({{node}})" style="margin: 0.5em;">Kill node</button>
-            <button onclick="runYagnaCommand({{node}})" style="margin: 0.5em;">Payment status</button>
+            <button onclick="runYagnaCommand({{node}}, 'payment status --json')" style="margin: 0.5em;">Payment status</button>
+            <button onclick="runYagnaCommand({{node}}, 'version show --json')" style="margin: 0.5em;">Yagna version</button>
             <table>
                 <tr><th>Status/Identity</th><td><div id="yagna_status_{{node}}"></div></td></tr>
             </table>

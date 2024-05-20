@@ -134,7 +134,9 @@ class PanelServer:
         return web.Response(text="Dockers stopped")
 
     async def compose_up(self, request):
-        os.system("docker build -t yagna-provider .")
+        params = self.load_image_params()
+        yagna_version = params["yagnaVersion"]
+        os.system(f"docker build -t yagna-provider --build-arg YAGNA_VERSION={yagna_version} .")
         self._logger.info("docker compose up -d --remove-orphans")
         os.system("docker compose up -d")
         return web.Response(text="Dockers started")

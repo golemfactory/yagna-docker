@@ -21,10 +21,10 @@ async function stopNodes() {
 
 }
 
-async function runYagnaCommand(no) {
+async function runYagnaCommand(no, command) {
     let runUp = fetch(`${baseUrl}/yagna/${no}/cli`, {
         method: "POST",
-        body: "payment status --json",
+        body: command,
     });
     let response = await runUp;
     let resp = await response.text()
