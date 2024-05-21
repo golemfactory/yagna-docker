@@ -17,7 +17,8 @@
     <div style="padding: 0.6em; font-size: 1.4em; font-weight: bold">Your testnet - {{ computer_name }} - {{ current_dir }}</div>
 
     <div id="main_view" style="display:none; border: 1px solid indigo; padding: 0.3em;">
-        <div style="display: flex;">
+        <div id="command_view" style="display: flex;">
+            <div> <button class="btn btn-secondary" onclick="$('#command_view').hide()">Hide</button></div>
             <div style="padding: 10px; width: 13em; border: 1px solid lightgray; margin: 1em;">
                 <div class="" style="font-weight: bold; margin-bottom: 0.4em; font-size: 1.1em;">Compose commands:</div>
                 <div>
@@ -65,28 +66,51 @@
     </div>
     <div>
         {% for node in nodes %}
-        <div style="padding: 1em; border: 1px solid gray; margin: 0.2em;">
+        <div style="padding: 1em; border: 1px solid gray; margin: 0.2em; display: flex; flex-direction: column">
             <div style="font-weight: bold;">
                 Provider number: {{node}}
                 (Subnet: <span style="font-weight: bold;" id="subnet_name_{{ node }}"></span>)
+                (Id: <span id="yagna_status_{{node}}"></span>)
             </div>
-            <button onclick="startNode({{node}})" style="margin: 0.5em;">Start node</button>
-            <button onclick="restartNode({{node}})" style="margin: 0.5em;">Restart node</button>
-            <button onclick="stopNode({{node}})" style="margin: 0.5em;">Stop node</button>
-            <button onclick="killNode({{node}})" style="margin: 0.5em;">Kill node</button>
-            <button onclick="runYagnaCommand({{node}}, 'payment status --json')" style="margin: 0.5em;">Payment status</button>
-            <button onclick="runYagnaCommand({{node}}, 'version show --json')" style="margin: 0.5em;">Yagna version</button>
-            <table>
-                <tr><th>Status/Identity</th><td><div id="yagna_status_{{node}}"></div></td></tr>
-            </table>
-            <div>Subnet name:</div>
-            <div style="border: 1px solid blue; padding: 0.1em;">
-                <div style="font-weight: bold">Process list:</div>
-                <div id="proc_list_{{ node }}"></div>
-            </div>
-            <div style="border: 1px solid blue; padding: 0.1em;">
-                <div style="font-weight: bold">Env list:</div>
-                <div id="env_list_{{ node }}"></div>
+            <div style="display: flex; flex-direction: row;">
+                <div style="padding: 10px; border: 1px solid lightgray; margin: 1em;">
+                    <div class="" style="font-weight: bold; margin-bottom: 0.4em; font-size: 1.0em;">Container commands:</div>
+                    <div>
+                        <button class="btn btn-primary btn-container-action" onclick="startNode({{node}})" style="margin: 0.5em;"
+                                title="start single node (works only if docker compose is already up)">Start node</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary btn-container-action" onclick="restartNode({{node}})" style="margin: 0.5em;"
+                                title="stop and then starts node (around 12 seconds)">Restart node</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary btn-container-action" onclick="stopNode({{node}})" style="margin: 0.5em;"
+                                title="stops node (around 10seconds)">Stop node</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary btn-container-action" onclick="killNode({{node}})" style="margin: 0.5em;"
+                                title="stops node instantly">Kill node</button>
+                    </div>
+                </div>
+                <div style="padding: 10px; border: 1px solid lightgray; margin: 1em;">
+                    <div class="" style="font-weight: bold; margin-bottom: 0.4em; font-size: 1.0em;">Yagna commands:</div>
+                    <div>
+                        <button class="btn btn-primary btn-container-action" onclick="runYagnaCommand({{node}}, 'payment status --json')" style="margin: 0.5em;"
+                                title="docker compose down (removes all containers)">Payment status</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary btn-container-action" onclick="runYagnaCommand({{node}}, 'version show --json')" style="margin: 0.5em;"
+                                title="docker compose down (removes all containers)">Show version</button>
+                    </div>
+                </div>
+                <div style="border: 1px solid lightgray; padding: 0.4em; margin: 1em;">
+                    <div style="font-weight: bold">Process list:</div>
+                    <div id="proc_list_{{ node }}"></div>
+                </div>
+                <div style="border: 1px solid blue; padding: 0.4em; margin: 1.0em;">
+                    <div style="font-weight: bold">Env list:</div>
+                    <div id="env_list_{{ node }}"></div>
+                </div>
             </div>
         </div>
         {% endfor %}
@@ -96,17 +120,13 @@
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Modal title</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <h5 class="modal-title">Command result</h5>
           </div>
           <div class="modal-body">
             <textarea style="width: 100%; height: 500px; font-family: Consolas" id="command_result"></textarea>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary">Save changes</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           </div>
         </div>
       </div>

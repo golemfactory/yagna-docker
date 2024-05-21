@@ -45,8 +45,8 @@ async function getProcessList(no) {
     let html = "";
     for (let i = 0; i < resp.length; i++) {
         html += `<div>${resp[i]["command"]} (pid: ${resp[i]["pid"]}, cpu: ${resp[i]["cpu"]})`;
-        html += `<button onclick="stopProcess(${no}, ${resp[i]["pid"]})">Stop</button>`;
-        html += `<button onclick="killProcess(${no}, ${resp[i]["pid"]})">Kill</button>`;
+        html += `<button class="btn btn-outline-secondary btn-sm btn-process-list" onclick="stopProcess(${no}, ${resp[i]["pid"]})">Stop</button>`;
+        html += `<button class="btn btn-outline-secondary btn-sm btn-process-list" onclick="killProcess(${no}, ${resp[i]["pid"]})">Kill</button>`;
         html += "</div>"
     }
     $(`#proc_list_${no}`).html(html);

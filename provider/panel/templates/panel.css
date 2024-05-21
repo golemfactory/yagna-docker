@@ -2,3 +2,11 @@
 .btn-compose-action {
     width: 11em;
 }
+.btn-container-action {
+    font-size: 0.9em;
+    width: 10em;
+}
+.btn-process-list {
+    font-size: 0.7em;
+    margin: 0.2em;
+}
