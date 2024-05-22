@@ -13,7 +13,7 @@ function showMainPanel() {
     $('#show_main_panel_btn').prop('disabled', true);
 }
 
-function sectionChanged(section) {
+function sectionChanged() {
     if ($("#show_section_container_commands_chkbox").prop('checked')) {
         showSection(".container-commands");
     } else {
@@ -263,6 +263,7 @@ async function getComposeParams() {
     }
 
     $(`#main_view`).show();
+    $("#event_mainer_view").css("display", "flex");
 
 }
 

@@ -20,7 +20,7 @@
     <div style="display: flex; flex-direction: row">
         <div id="side_view" style="display: flex; flex-direction: column; padding: 0.5em;">
         </div>
-        <div style="display: flex; flex-direction: column;">
+        <div id="event_mainer_view" style="display: none; flex-direction: column;">
             <div id="main_view" style="display:none; border: 1px solid lightgray; padding: 0.3em;">
                 <div style="display: flex; flex-direction: row;">
                     <button id="hide_main_panel_btn" class="btn btn-secondary btn-menu" onclick="hideMainPanel()">Hide</button>
@@ -86,7 +86,7 @@
                             <label for="show_section_useful_files_chkbox">Show useful files</label>
                         </div>
                         <div>
-                            <input type="checkbox" id="show_section_process_list_chkbox" onchange="sectionChanged()"/>
+                            <input type="checkbox" id="show_section_process_list_chkbox" checked="checked" onchange="sectionChanged()"/>
                             <label for="show_section_process_list_chkbox">Show process list</label>
                         </div>
                         <div>
@@ -124,7 +124,7 @@
                                         title="stops node instantly">Kill node</button>
                             </div>
                         </div>
-                        <div class="yagna-commands" style="padding: 10px; border: 1px solid lightgray; margin: 1em;">
+                        <div class="yagna-commands" style="display:none; padding: 10px; border: 1px solid lightgray; margin: 1em;">
                             <div style="font-weight: bold; margin-bottom: 0.4em; font-size: 1.0em;">Yagna commands:</div>
                             <div>
                                 <button class="btn btn-primary btn-container-action" onclick="runYagnaCommand({{node}}, 'payment status --json')" style="margin: 0.5em;"
@@ -135,7 +135,7 @@
                                         title="docker compose down (removes all containers)">Show version</button>
                             </div>
                         </div>
-                        <div class="useful-files" style="padding: 10px; border: 1px solid lightgray; margin: 1em;">
+                        <div class="useful-files" style="display:none; padding: 10px; border: 1px solid lightgray; margin: 1em;">
                             <div class="" style="font-weight: bold; margin-bottom: 0.4em; font-size: 1.0em;">Useful files:</div>
                             <div style="display: flex; flex-direction: column">
                                 <button class="btn btn-primary btn-container-action" onclick="showNodeFile({{node}}, 'ya-provider|globals.json')" style="margin: 0.5em;"
@@ -155,7 +155,7 @@
                             <div style="font-weight: bold">Process list:</div>
                             <div id="proc_list_{{ node }}"></div>
                         </div>
-                        <div class="env-list"  style="border: 1px solid lightgray; padding: 0.4em; margin: 1.0em;">
+                        <div class="env-list"  style="display:none; border: 1px solid lightgray; padding: 0.4em; margin: 1.0em;">
                             <div style="font-weight: bold">Env list:</div>
                             <div id="env_list_{{ node }}"></div>
                         </div>

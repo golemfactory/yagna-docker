@@ -40,6 +40,18 @@ class PanelServer:
             current_dir=current_dir,
         ), content_type="text/html")
 
+    async def web_log(self, request):
+        computer_name = os.environ.get("COMPUTERNAME", "Unknown")
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        template = env.get_template('log.html')
+        params = self.load_compose_params()
+        nodes = list(range(0, int(params["provCount"])))
+        return web.Response(text=template.render(
+            nodes=nodes,
+            computer_name=computer_name,
+            current_dir=current_dir,
+        ), content_type="text/html")
+
     async def get_yagna_log(self, request):
         yagna_no = int(request.match_info.get('no', 0))
         # get from uri:
@@ -313,6 +325,7 @@ class PanelServer:
         app = web.Application()
         app.router.add_route("GET", "/", lambda request: self.hello(request))
         app.router.add_route("GET", "/web", lambda request: self.web(request))
+        app.router.add_route("GET", "/web/log", lambda request: self.web_log(request))
         app.router.add_route("GET", "/yagna/{no}/log", lambda request: self.get_yagna_log(request))
         app.router.add_route("GET", "/yagna/{no}/isup", lambda request: self.check_yanga_up(request))
         app.router.add_route("GET", "/yagna/{no}/proc", lambda request: self.list_docker_processes(request))
