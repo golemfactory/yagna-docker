@@ -258,6 +258,28 @@ class PanelServer:
         self.load_compose_params()
         return web.Response(text="Compose params reset")
 
+    async def display_file(self, request):
+        yagna_no = int(request.match_info.get('no', 0))
+
+        file_name = request.match_info.get('file')
+        if "/" in file_name:
+            return web.Response(text="Invalid file name - use | instead of /", status=400)
+        file_name = file_name.replace("|", "/")
+
+        path = f"dock_prov_{yagna_no}"
+        search_path = os.path.abspath(os.path.join(path, file_name))
+        dock_prov_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), path)
+        # check if file is in the same directory
+        if search_path.startswith(dock_prov_path):
+            # should be safe to open the file
+            with open(search_path, "r") as f:
+                data = f.read()
+                return web.Response(text=data)
+
+        with open(search_path, "r") as f:
+            data = f.read()
+        return web.Response(text=data)
+
     async def regenerate_compose_file(self, request):
         self._logger.info("Regenerate docker compose file")
 
@@ -300,6 +322,7 @@ class PanelServer:
         app.router.add_route("POST", "/yagna/{no}/restart", lambda request: self.container_restart(request))
         app.router.add_route("POST", "/yagna/{no}/stop", lambda request: self.container_stop(request))
         app.router.add_route("POST", "/yagna/{no}/kill", lambda request: self.container_kill(request))
+        app.router.add_route("GET", "/yagna/{no}/file/{file}", lambda request: self.display_file(request))
         app.router.add_route("POST", "/yagna/{no}/proc/{proc_id}/stop",
                              lambda request: self.kill_container_process(request, False))
         app.router.add_route("POST", "/yagna/{no}/proc/{proc_id}/kill",

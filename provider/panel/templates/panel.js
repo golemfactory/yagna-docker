@@ -2,8 +2,61 @@
 // extract last folder
 let baseUrl = window.location.href.split('/').slice(0, -1).join('/');
 
+function hideMainPanel() {
+    $('#command_view').hide('slow');
+    $('#hide_main_panel_btn').prop('disabled', true);
+    $('#show_main_panel_btn').prop('disabled', false);
+}
+function showMainPanel() {
+    $('#command_view').show('slow');
+    $('#hide_main_panel_btn').prop('disabled', false);
+    $('#show_main_panel_btn').prop('disabled', true);
+}
+
+function sectionChanged(section) {
+    if ($("#show_section_container_commands_chkbox").prop('checked')) {
+        showSection(".container-commands");
+    } else {
+        hideSection(".container-commands");
+    }
+    if ($("#show_section_yagna_commands_chkbox").prop('checked')) {
+        showSection(".yagna-commands");
+    } else {
+        hideSection(".yagna-commands");
+    }
+    if ($("#show_section_useful_files_chkbox").prop('checked')) {
+        showSection(".useful-files");
+    } else {
+        hideSection(".useful-files");
+    }
+    if ($("#show_section_process_list_chkbox").prop('checked')) {
+        showSection(".process-list");
+    } else {
+        hideSection(".process-list");
+    }
+    if ($("#show_section_env_list_chkbox").prop('checked')) {
+        showSection(".env-list");
+    } else {
+        hideSection(".env-list");
+    }
+}
+
+function hideSection(section) {
+    $(section).hide({
+        duration: 500,
+        easing: "swing"
+    });
+}
+
+function showSection(section) {
+    $(section).show({
+        duration: 500,
+        easing: "swing"
+    });
+}
+
 async function stopNodes() {
-    $(`#stop_nodes_btn`).prop('disabled', true)
+    $(`#stop_nodes_btn`).prop('disabled', true);
     $(`#start_nodes_btn`).prop('disabled', true);
     let startClosing = fetch(`${baseUrl}/compose/down`, {
         method: "POST", // *GET, POST, PUT, DELETE, etc.
@@ -25,6 +78,17 @@ async function runYagnaCommand(no, command) {
     let runUp = fetch(`${baseUrl}/yagna/${no}/cli`, {
         method: "POST",
         body: command,
+    });
+    let response = await runUp;
+    let resp = await response.text()
+    console.log(`response: ${response.status} ${resp}`);
+    $('#myModal').modal('toggle');
+    $('#command_result').html(resp);
+}
+
+async function showNodeFile(no, path) {
+    let runUp = fetch(`${baseUrl}/yagna/${no}/file/${path}`, {
+        method: "GET"
     });
     let response = await runUp;
     let resp = await response.text()
@@ -291,7 +355,7 @@ async function refreshNodes(showChecking) {
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('DOM fully loaded and parsed');
     await refreshNodes(true);
-
+    sectionChanged();
     while (true) {
         try {
             await refreshNodes(false);
