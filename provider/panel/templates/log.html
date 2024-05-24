@@ -12,22 +12,35 @@
 </head>
 
 <body>
-
     <div id="log_viewer" style="padding: 1em;">
     </div>
 </body>
 <style>
-    li {
+    #log_viewer {
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+    }
+    div.entry {
+        display: flex;
+        flex-direction: row;
+    }
+    div.module {
+        font-weight: bold;
+        width: 23em;
+        min-width: 23em;
+    }
+    div.content {
         white-space: pre;
         font-family: monospace;
     }
-    li.INFO {
+
+    div.INFO {
         color: blue;
     }
-    li.WARN {
+    div.WARN {
         color: orange;
     }
-    li.ERROR {
+    div.ERROR {
         color: red;
     }
 </style>
@@ -50,7 +63,7 @@
         let endInfo = line.indexOf(" ", end_date_idx + 1);
         let logLevel = line.substring(end_date_idx + 1, endInfo);
         let endModule = line.indexOf("]", endInfo + 1);
-        let module = line.substring(endInfo + 1, endModule + 1);
+        let module = line.substring(endInfo + 1, endModule);
 
         return {
             date: date,
@@ -80,7 +93,7 @@
                 }
             }
         }
-        let max_len = 1000;
+        let max_len = 100;
         for (let i = 0; i < new_split.length; i++) {
             if (new_split[i].content.length > max_len) {
                 new_split[i].shortContent = new_split[i].content.substring(0, max_len) + "...";
@@ -89,13 +102,16 @@
             }
         }
 
-        let html_split = "<ol>";
+        let html_split = "<div>";
         for (let i = 0; i < new_split.length; i++) {
             let obj = new_split[i];
             let content = obj.shortContent.replaceAll("\n", "<br/>");
-            html_split += `<li class="${obj.logLevel}">${content}</li>`;
+            html_split += '<div class="entry">';
+            html_split += `<div class="module">${obj.module}</div>`;
+                html_split += `<div class="content ${obj.logLevel}">${content}</div>`;
+            html_split += '</div>';
         }
-        html_split += "</ol>";
+        html_split += "</div>";
         $('#log_viewer').html(html_split);
     }
     $(document).ready(function() {
