@@ -12,6 +12,7 @@
 </head>
 
 <body>
+    <div id="module_list"></div>
     <div id="log_viewer" style="padding: 1em;">
     </div>
 </body>
@@ -20,9 +21,24 @@
         font-family: Arial, sans-serif;
         font-size: 12px;
     }
+    #module_list {
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        padding: 1em;
+    }
     div.entry {
         display: flex;
         flex-direction: row;
+    }
+    div.module-entry {
+        display: flex;
+        flex-direction: row;
+        margin-bottom: 1em;
+    }
+    div.entry-time {
+        font-weight: bold;
+        width: 5em;
+        min-width: 5em;
     }
     div.module {
         font-weight: bold;
@@ -34,13 +50,22 @@
         font-family: monospace;
     }
 
-    div.INFO {
+    .INFO {
         color: blue;
     }
-    div.WARN {
+    .WARN {
         color: orange;
     }
-    div.ERROR {
+    .ERROR {
+        color: red;
+    }
+    .INFO td {
+        color: blue;
+    }
+    .WARN td {
+        color: orange;
+    }
+    .ERROR td {
         color: red;
     }
 </style>
@@ -71,16 +96,10 @@
             module: module,
             content: line.substring(endModule + 2)
         };
-
     }
 
-    async function showNodeFile(no, path) {
-        let runUp = fetch(`${baseUrl}/yagna/${no}/file/${path}`, {
-            method: "GET"
-        });
-        let response = await runUp;
-        let resp = await response.text();
-        let resp_split = resp.split("\n");
+    function doSplit(logText) {
+        let resp_split = logText.split("\n");
         let new_split = []
         for (let i = 0; i < resp_split.length; i++) {
             let line = resp_split[i];
@@ -101,14 +120,113 @@
                 new_split[i].shortContent = new_split[i].content;
             }
         }
+        let timeStart = new_split[0].date;
+        let modules = {};
+        for (let i = 0; i < new_split.length; i++) {
+            if (i == 0) {
+                new_split[i].fromStart = 0.0;
+                new_split[i].fromPrev = 0.0;
+            } else {
+                new_split[i].fromStart = new_split[i].date - timeStart;
+                new_split[i].fromPrev = new_split[i].date - new_split[i - 1].date;
+            }
+            new_split[i].marginTop = Math.round(Math.sqrt(Math.min(Math.max(1, new_split[i].fromPrev), 1000)));
+            if (new_split[i].logLevel == "ERROR") {
+                new_split[i].logLevelInt = 5;
+            }
+            else if (new_split[i].logLevel == "WARN") {
+                new_split[i].logLevelInt = 4;
+            }
+            else if (new_split[i].logLevel == "INFO") {
+                new_split[i].logLevelInt = 3;
+            }
+            else if (new_split[i].logLevel == "DEBUG") {
+                new_split[i].logLevelInt = 2;
+            }
+            else if (new_split[i].logLevel == "TRACE") {
+                new_split[i].logLevelInt = 1;
+            }
+            else {
+                new_split[i].logLevelInt = 0;
+            }
+
+            if (new_split[i].module in modules) {
+                modules[new_split[i].module].count += 1;
+                modules[new_split[i].module].maxLevel = Math.max(modules[new_split[i].module].maxLevel, new_split[i].logLevelInt);
+                modules[new_split[i].module].lastOcc = new_split[i].fromStart;
+            } else {
+                modules[new_split[i].module] = {};
+                modules[new_split[i].module].count = 1;
+                modules[new_split[i].module].firstOcc = new_split[i].fromStart;
+                modules[new_split[i].module].lastOcc = new_split[i].fromStart;
+                modules[new_split[i].module].maxLevel = new_split[i].logLevelInt;
+            }
+        }
+        for (let i in modules) {
+            let logLevelStr = "";
+            if (modules[i].maxLevel == 5) {
+                logLevelStr = "ERROR";
+            }
+            else if (modules[i].maxLevel == 4) {
+                logLevelStr = "WARN";
+            }
+            else if (modules[i].maxLevel == 3) {
+                logLevelStr = "INFO";
+            }
+            else if (modules[i].maxLevel == 2) {
+                logLevelStr = "DEBUG";
+            }
+            else if (modules[i].maxLevel == 1) {
+                logLevelStr = "TRACE";
+            }
+            else {
+                logLevelStr = "UNKNOWN";
+            }
+            modules[i].logLevelStr = logLevelStr;
+        }
+
+        return [new_split, modules];
+    }
+
+    async function showNodeFile(no, path) {
+        let runUp = fetch(`${baseUrl}/yagna/${no}/file/${path}`, {
+            method: "GET"
+        });
+        let response = await runUp;
+        let resp = await response.text();
+        let [new_split, modules] = doSplit(resp);
+
+        let modulesList = `<table class="table table-striped">`;
+        modulesList += `<tr class="module-entry">`;
+        modulesList += `<th>Module</th>`;
+        modulesList += `<th>Count</th>`;
+        modulesList += `<th>First</th>`;
+        modulesList += `<th>Last</th>`;
+        modulesList += `<th>Max level</th>`;
+        modulesList += '</tr>';
+        for (let module in modules) {
+            let obj = modules[module];
+            modulesList += `<tr class="module-entry ${obj.logLevelStr}" >`;
+
+            modulesList += `<td>${module}</td>`;
+            modulesList += `<td>${obj.count}</td>`;
+            modulesList += `<td>${obj.firstOcc/1000}</td>`;
+            modulesList += `<td>${obj.lastOcc/1000}</td>`;
+            modulesList += `<td>${obj.logLevelStr}</td>`;
+            modulesList += '</tr>';
+        }
+        modulesList += "</table>";
+        $('#module_list').html(modulesList);
 
         let html_split = "<div>";
         for (let i = 0; i < new_split.length; i++) {
             let obj = new_split[i];
-            let content = obj.shortContent.replaceAll("\n", "<br/>");
-            html_split += '<div class="entry">';
+            let content = obj.shortContent.replaceAll("\n", " ");
+            html_split += `<div class="entry ${obj.logLevel}" style="margin-top: ${obj.marginTop}px">`;
+            //html_split += `<div class="module">${obj.date.toISOString()}</div>`;
+            html_split += `<div class="entry-time">${obj.fromStart / 1000}s</div>`;
             html_split += `<div class="module">${obj.module}</div>`;
-                html_split += `<div class="content ${obj.logLevel}">${content}</div>`;
+            html_split += `<div class="content">${content}</div>`;
             html_split += '</div>';
         }
         html_split += "</div>";

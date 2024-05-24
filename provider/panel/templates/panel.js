@@ -71,7 +71,6 @@ async function stopNodes() {
     $(`#start_nodes_btn`).prop('disabled', false);
 
     await refreshNodes();
-
 }
 
 async function runYagnaCommand(no, command) {
@@ -169,7 +168,6 @@ async function restartNode(no) {
     let resp = await response.text()
     console.log(`response: ${response.status} ${resp}`);
 }
-
 
 async function killNode(no) {
     let runUp = fetch(`${baseUrl}/yagna/${no}/kill`, {
