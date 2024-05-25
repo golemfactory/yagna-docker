@@ -60,7 +60,7 @@ function parseLine(line) {
     if (endModule == -1) {
         return false;
     }
-    let module = line.substring(endInfo + 2, endModule);
+    let module = line.substring(endInfo + 1, endModule);
 
     return {
         date: date,
@@ -68,12 +68,6 @@ function parseLine(line) {
         module: module.trim(),
         content: line.substring(endModule + 2).trim()
     };
-}
-
-function testParseLine() {
-    let line = "[2021-06-15T17:10:00.000 IN";
-    let parsedLine = parseLine(line);
-    console.log(parsedLine);
 }
 
 function doSplit(logText) {
