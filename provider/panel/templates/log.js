@@ -308,7 +308,7 @@ class LogStorage {
                     continue;
                 }
                 let content = obj.shortContent.replaceAll("\n", " ");
-                html_split += `<div class="entry ${obj.logLevel}" style="margin-top: ${obj.marginTop}px">`;
+                html_split += `<div id="entry-${logFileNo}-${i}" class="entry ${obj.logLevel}" style="margin-top: ${obj.marginTop}px">`;
                 //html_split += `<div class="module">${obj.date.toISOString()}</div>`;
                 html_split += `<div class="entry-time">${obj.fromStart / 1000}s</div>`;
                 html_split += `<div class="module">${obj.module}</div>`;

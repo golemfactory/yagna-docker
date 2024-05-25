@@ -41,8 +41,13 @@
         a.click();  // Programmatically click the anchor to trigger the download
         document.body.removeChild(a);  // Remove the anchor from the document
         URL.revokeObjectURL(url);
-
     }
+    function getUrlParams() {
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        return urlParams;
+    }
+
     async function showNodeFile(no, path) {
         let runUp = fetch(`${baseUrl}/yagna/${no}/file/${path}`, {
             method: "GET"
@@ -57,8 +62,7 @@
         displayFilter.acceptedLogLevels = [];
         displayFilter.acceptedModules = [];
         displayFilter.contentSearchFields = [];
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
+        const urlParams = getUrlParams();
         if (urlParams.has('module') && urlParams.get('module') !== '') {
             displayFilter.acceptedModules = urlParams.get('module').split(',');
         }
@@ -91,11 +95,19 @@
         }
 
         $('#log_viewer').html(logStorage.renderLogEntries());
+
+        if (urlParams.has('scroll') && urlParams.get('scroll') !== '') {
+            let scroll = urlParams.get('scroll');
+            let element = document.getElementById(scroll);
+            if (element) {
+                element.scrollIntoView();
+            }
+        }
     }
 
     $(document).ready(function () {
         logStorage = new LogStorage();
-        showNodeFile(0, 'yagna|yagna_rCURRENT.log')
+        showNodeFile(0, 'yagna|yagna_rCURRENT.log');
     });
 
 
