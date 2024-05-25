@@ -85,6 +85,13 @@
 
         let logStorage = new LogStorage();
         logStorage.addLogFile(logFile);
+        let displayFilter = new AcceptLogFilter();
+        displayFilter.acceptedLogLevels = [];
+        displayFilter.acceptedModules = [];
+        displayFilter.contentSearchFields = [];
+        logStorage.setDisplayFilter(
+            displayFilter
+        );
         $('#module_list').html(logStorage.renderModules());
         $('#log_viewer').html(logStorage.renderLogEntries());
     }

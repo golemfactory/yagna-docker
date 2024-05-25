@@ -12,11 +12,12 @@ class LogEntry {
     }
 }
 
-class LogFilter {
+
+class AcceptLogFilter {
     constructor() {
-        this.logLevel = "";
-        this.module = "";
-        this.content = "";
+        this.acceptedLogLevels = [];
+        this.acceptedModules = [];
+        this.contentSearchFields = [];
     }
 }
 
@@ -51,13 +52,13 @@ function parseLine(line) {
     if (endModule == -1) {
         return false;
     }
-    let module = line.substring(endInfo + 1, endModule);
+    let module = line.substring(endInfo + 2, endModule);
 
     return {
         date: date,
-        logLevel: logLevel,
-        module: module,
-        content: line.substring(endModule + 2)
+        logLevel: logLevel.trim(),
+        module: module.trim(),
+        content: line.substring(endModule + 2).trim()
     };
 }
 
@@ -168,6 +169,14 @@ function doSplit(logText) {
 class LogStorage {
     constructor() {
         this.logFiles = [];
+        this.displayFilter = null;
+    }
+
+    /**
+     * @param {AcceptLogFilter} filter
+     */
+    setDisplayFilter(filter) {
+        this.displayFilter = filter;
     }
 
     addLogFile(logFile) {
@@ -203,12 +212,44 @@ class LogStorage {
         return modulesList;
     }
 
+    /**
+     * @param {LogEntry} logEntry
+     * @param {AcceptLogFilter} filter
+     * @returns {boolean}
+     */
+    checkFilter(logEntry, filter) {
+        if (filter.acceptedLogLevels.length > 0) {
+            if (!filter.acceptedLogLevels.includes(logEntry.logLevel)) {
+                return false;
+            }
+        }
+        if (filter.acceptedModules.length > 0) {
+            if (!filter.acceptedModules.includes(logEntry.module)) {
+                return false;
+            }
+        }
+        if (filter.contentSearchFields.length > 0) {
+            for (let i = 0; i < filter.contentSearchFields.length; i++) {
+                let field = filter.contentSearchFields[i];
+                if (logEntry.content.includes(field)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return true;
+    }
+
     renderLogEntries() {
         let html_split = "<div>";
         for (let logFileNo = 0; logFileNo < this.logFiles.length; logFileNo++) {
             let logFile = this.logFiles[logFileNo];
             for (let i = 0; i < logFile.logEntries.length; i++) {
                 let obj = logFile.logEntries[i];
+
+                if (this.displayFilter && !this.checkFilter(obj, this.displayFilter)) {
+                    continue;
+                }
                 let content = obj.shortContent.replaceAll("\n", " ");
                 html_split += `<div class="entry ${obj.logLevel}" style="margin-top: ${obj.marginTop}px">`;
                 //html_split += `<div class="module">${obj.date.toISOString()}</div>`;
