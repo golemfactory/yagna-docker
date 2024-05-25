@@ -24,6 +24,7 @@ class AcceptLogFilter {
 class DenyLogFilter {
     constructor() {
         this.deniedModules = [];
+        this.deniedLogLevels = [];
         this.deniedSearchFields = [];
     }
 }
@@ -246,9 +247,8 @@ class LogStorage {
             }
         }
         if (filter.contentSearchFields.length > 0) {
-            for (let i = 0; i < filter.contentSearchFields.length; i++) {
-                let field = filter.contentSearchFields[i];
-                if (logEntry.content.includes(field)) {
+            for (let field of filter.contentSearchFields) {
+                if (logEntry.content.toLowerCase().includes(field.toLowerCase())) {
                     return true;
                 }
             }
@@ -267,10 +267,14 @@ class LogStorage {
                 return false;
             }
         }
+        if (filter.deniedLogLevels.length > 0) {
+            if (filter.deniedLogLevels.includes(logEntry.logLevel)) {
+                return false;
+            }
+        }
         if (filter.deniedSearchFields.length > 0) {
-            for (let i = 0; i < filter.deniedSearchFields.length; i++) {
-                let field = filter.deniedSearchFields[i];
-                if (logEntry.content.includes(field)) {
+            for (let deniedField of filter.deniedSearchFields) {
+                if (logEntry.content.toLowerCase().includes(deniedField.toLowerCase())) {
                     return false;
                 }
             }
