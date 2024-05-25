@@ -83,8 +83,10 @@
 
         let logFile = new LogFile(resp)
 
-        $('#module_list').html(logFile.renderModules());
-        $('#log_viewer').html(logFile.renderLogEntries());
+        let logStorage = new LogStorage();
+        logStorage.addLogFile(logFile);
+        $('#module_list').html(logStorage.renderModules());
+        $('#log_viewer').html(logStorage.renderLogEntries());
     }
     $(document).ready(function() {
         showNodeFile(0, 'yagna|yagna_rCURRENT.log')

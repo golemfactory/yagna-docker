@@ -1,9 +1,22 @@
 class LogEntry {
     constructor() {
-        this.id = null;
-        this.type = null;
-        this.message = null;
-        this.timestamp = null;
+        this.date = new Date();
+        this.fromStart = 0.0;
+        this.fromPrev = 0.0;
+        this.marginTop = 0;
+        this.logLevelInt = 0;
+        this.logLevel = "";
+        this.module = "";
+        this.content = "";
+        this.shortContent = "";
+    }
+}
+
+class LogFilter {
+    constructor() {
+        this.logLevel = "";
+        this.module = "";
+        this.content = "";
     }
 }
 
@@ -56,12 +69,20 @@ function testParseLine() {
 
 function doSplit(logText) {
     let resp_split = logText.split("\n");
-    let new_split = []
+    /**
+     * @type {LogEntry[]}
+     */
+    let new_split = [];
     for (let i = 0; i < resp_split.length; i++) {
         let line = resp_split[i];
         let parsedLine = parseLine(line);
         if (parsedLine !== false) {
-            new_split.push(parsedLine);
+            let logEntry = new LogEntry();
+            logEntry.date = parsedLine.date;
+            logEntry.logLevel = parsedLine.logLevel;
+            logEntry.module = parsedLine.module;
+            logEntry.content = parsedLine.content;
+            new_split.push(logEntry)
         } else {
             if (new_split.length >= 1) {
                 new_split[new_split.length - 1].content += "\n" + line;
@@ -144,14 +165,17 @@ function doSplit(logText) {
     return [new_split, modules];
 }
 
-class LogFile {
-    constructor(logText) {
-        let [new_split, modules] = doSplit(logText);
-        this.logEntries = new_split;
-        this.modules = modules;
+class LogStorage {
+    constructor() {
+        this.logFiles = [];
+    }
+
+    addLogFile(logFile) {
+        this.logFiles.push(logFile);
     }
 
     renderModules() {
+
         let modulesList = `<table class="table table-striped">`;
         modulesList += `<tr class="module-entry">`;
         modulesList += `<th>Module</th>`;
@@ -160,16 +184,20 @@ class LogFile {
         modulesList += `<th>Last</th>`;
         modulesList += `<th>Max level</th>`;
         modulesList += '</tr>';
-        for (let module in this.modules) {
-            let obj = this.modules[module];
-            modulesList += `<tr class="module-entry ${obj.logLevelStr}" >`;
 
-            modulesList += `<td>${module}</td>`;
-            modulesList += `<td>${obj.count}</td>`;
-            modulesList += `<td>${obj.firstOcc / 1000}</td>`;
-            modulesList += `<td>${obj.lastOcc / 1000}</td>`;
-            modulesList += `<td>${obj.logLevelStr}</td>`;
-            modulesList += '</tr>';
+        for (let logFileNo = 0; logFileNo < this.logFiles.length; logFileNo++) {
+            let logFile = this.logFiles[logFileNo];
+            for (let module in logFile.modules) {
+                let obj = logFile.modules[module];
+                modulesList += `<tr class="module-entry ${obj.logLevelStr}" >`;
+
+                modulesList += `<td>${module}</td>`;
+                modulesList += `<td>${obj.count}</td>`;
+                modulesList += `<td>${obj.firstOcc / 1000}</td>`;
+                modulesList += `<td>${obj.lastOcc / 1000}</td>`;
+                modulesList += `<td>${obj.logLevelStr}</td>`;
+                modulesList += '</tr>';
+            }
         }
         modulesList += "</table>";
         return modulesList;
@@ -177,17 +205,29 @@ class LogFile {
 
     renderLogEntries() {
         let html_split = "<div>";
-        for (let i = 0; i < this.logEntries.length; i++) {
-            let obj = this.logEntries[i];
-            let content = obj.shortContent.replaceAll("\n", " ");
-            html_split += `<div class="entry ${obj.logLevel}" style="margin-top: ${obj.marginTop}px">`;
-            //html_split += `<div class="module">${obj.date.toISOString()}</div>`;
-            html_split += `<div class="entry-time">${obj.fromStart / 1000}s</div>`;
-            html_split += `<div class="module">${obj.module}</div>`;
-            html_split += `<div class="content">${content}</div>`;
-            html_split += '</div>';
+        for (let logFileNo = 0; logFileNo < this.logFiles.length; logFileNo++) {
+            let logFile = this.logFiles[logFileNo];
+            for (let i = 0; i < logFile.logEntries.length; i++) {
+                let obj = logFile.logEntries[i];
+                let content = obj.shortContent.replaceAll("\n", " ");
+                html_split += `<div class="entry ${obj.logLevel}" style="margin-top: ${obj.marginTop}px">`;
+                //html_split += `<div class="module">${obj.date.toISOString()}</div>`;
+                html_split += `<div class="entry-time">${obj.fromStart / 1000}s</div>`;
+                html_split += `<div class="module">${obj.module}</div>`;
+                html_split += `<div class="content">${content}</div>`;
+                html_split += '</div>';
+            }
         }
         html_split += "</div>";
         return html_split;
+    }
+
+}
+
+class LogFile {
+    constructor(logText) {
+        let [new_split, modules] = doSplit(logText);
+        this.logEntries = new_split;
+        this.modules = modules;
     }
 }
