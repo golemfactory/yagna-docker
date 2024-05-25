@@ -1,0 +1,51 @@
+#log_viewer {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+#module_list {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    padding: 1em;
+}
+div.entry {
+    display: flex;
+    flex-direction: row;
+}
+div.module-entry {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 1em;
+}
+div.entry-time {
+    font-weight: bold;
+    width: 5em;
+    min-width: 5em;
+}
+div.module {
+    font-weight: bold;
+    width: 23em;
+    min-width: 23em;
+}
+div.content {
+    white-space: pre;
+    font-family: monospace;
+}
+
+.INFO {
+    color: blue;
+}
+.WARN {
+    color: orange;
+}
+.ERROR {
+    color: red;
+}
+.INFO td {
+    color: blue;
+}
+.WARN td {
+    color: orange;
+}
+.ERROR td {
+    color: red;
+}
