@@ -21,6 +21,13 @@ class AcceptLogFilter {
     }
 }
 
+class DenyLogFilter {
+    constructor() {
+        this.deniedModules = [];
+        this.deniedSearchFields = [];
+    }
+}
+
 /**
  * Parse a line from a log file.
  * @param {string} line
@@ -169,7 +176,10 @@ function doSplit(logText) {
 class LogStorage {
     constructor() {
         this.logFiles = [];
+        // @type {AcceptLogFilter}
         this.displayFilter = null;
+        // @type {DenyLogFilter}
+        this.displayDenyFilter = null;
     }
 
     /**
@@ -177,6 +187,13 @@ class LogStorage {
      */
     setDisplayFilter(filter) {
         this.displayFilter = filter;
+    }
+
+    /**
+     * @param {DenyLogFilter} filter
+     */
+    setDisplayDenyFilter(filter) {
+        this.displayDenyFilter = filter;
     }
 
     addLogFile(logFile) {
@@ -240,6 +257,27 @@ class LogStorage {
         return true;
     }
 
+    /**
+     * @param {LogEntry} logEntry
+     * @param {DenyLogFilter} filter
+     */
+    checkNegativeFilter(logEntry, filter) {
+        if (filter.deniedModules.length > 0) {
+            if (filter.deniedModules.includes(logEntry.module)) {
+                return false;
+            }
+        }
+        if (filter.deniedSearchFields.length > 0) {
+            for (let i = 0; i < filter.deniedSearchFields.length; i++) {
+                let field = filter.deniedSearchFields[i];
+                if (logEntry.content.includes(field)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     renderLogEntries() {
         let html_split = "<div>";
         for (let logFileNo = 0; logFileNo < this.logFiles.length; logFileNo++) {
@@ -248,6 +286,9 @@ class LogStorage {
                 let obj = logFile.logEntries[i];
 
                 if (this.displayFilter && !this.checkFilter(obj, this.displayFilter)) {
+                    continue;
+                }
+                if (this.displayDenyFilter && !this.checkNegativeFilter(obj, this.displayDenyFilter)) {
                     continue;
                 }
                 let content = obj.shortContent.replaceAll("\n", " ");

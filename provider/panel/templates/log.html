@@ -92,6 +92,13 @@
         logStorage.setDisplayFilter(
             displayFilter
         );
+        let displayDenyFilter = new DenyLogFilter();
+        displayDenyFilter.deniedModules = [];
+        displayDenyFilter.contentSearchFields = [];
+        logStorage.setDisplayDenyFilter(
+            displayDenyFilter
+        );
+
         $('#module_list').html(logStorage.renderModules());
         $('#log_viewer').html(logStorage.renderLogEntries());
     }
