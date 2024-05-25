@@ -71,7 +71,10 @@
             displayDenyFilter
         );
 
-        $('#module_list').html(logStorage.renderModules());
+        if (!urlParams.has('hide_modules') || urlParams.get('hide_modules') !== 'true') {
+            $('#module_list').html(logStorage.renderModules());
+        }
+
         $('#log_viewer').html(logStorage.renderLogEntries());
     }
 
