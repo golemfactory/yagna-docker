@@ -15,7 +15,9 @@
 </head>
 
 <body>
+
 <div id="module_list"></div>
+<div> <button class="btn btn-primary" onclick="downloadLog();">Download filtered log</button> </div>
 <div id="log_viewer" style="padding: 1em;">
 </div>
 </body>
@@ -26,7 +28,21 @@
     // extract last folder
     let baseUrl = window.location.href.split('/').slice(0, -2).join('/');
 
+    let logStorage = null;
 
+    function downloadLog() {
+        let exported = logStorage.exportDisplayedToLog();
+        let blob = new Blob([exported], {type: "text/plain;charset=utf-8"});
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = 'filtered.log';  // The file name you want to save as
+        document.body.appendChild(a);  // Append the anchor to the body
+        a.click();  // Programmatically click the anchor to trigger the download
+        document.body.removeChild(a);  // Remove the anchor from the document
+        URL.revokeObjectURL(url);
+
+    }
     async function showNodeFile(no, path) {
         let runUp = fetch(`${baseUrl}/yagna/${no}/file/${path}`, {
             method: "GET"
@@ -36,7 +52,6 @@
 
         let logFile = new LogFile(resp)
 
-        let logStorage = new LogStorage();
         logStorage.addLogFile(logFile);
         let displayFilter = new AcceptLogFilter();
         displayFilter.acceptedLogLevels = [];
@@ -79,6 +94,7 @@
     }
 
     $(document).ready(function () {
+        logStorage = new LogStorage();
         showNodeFile(0, 'yagna|yagna_rCURRENT.log')
     });
 

@@ -195,6 +195,24 @@ class LogStorage {
         this.logFiles.push(logFile);
     }
 
+    exportDisplayedToLog() {
+        let exported = "";
+        for (let logFileNo = 0; logFileNo < this.logFiles.length; logFileNo++) {
+            let logFile = this.logFiles[logFileNo];
+            for (let i = 0; i < logFile.logEntries.length; i++) {
+                let obj = logFile.logEntries[i];
+                if (this.displayFilter && !this.checkFilter(obj, this.displayFilter)) {
+                    continue;
+                }
+                if (this.displayDenyFilter && !this.checkNegativeFilter(obj, this.displayDenyFilter)) {
+                    continue;
+                }
+                exported += `[${obj.date.toISOString()} ${obj.logLevel} ${obj.module}] ${obj.content}\n`;
+            }
+        }
+        return exported;
+    }
+
     renderModules() {
 
         let modulesList = `<table class="table table-striped">`;
