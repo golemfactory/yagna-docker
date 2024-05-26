@@ -1,14 +1,13 @@
 class LogEntry {
     constructor() {
         this.date = new Date();
-        this.fromStart = 0.0;
-        this.fromPrev = 0.0;
-        this.marginTop = 0;
         this.logLevelInt = 0;
         this.logLevel = "";
         this.module = "";
         this.content = "";
         this.shortContent = "";
+        this.fileNo = 0;
+        this.fileDisplayName = "";
     }
 }
 
@@ -70,12 +69,40 @@ function parseLine(line) {
     };
 }
 
+/**
+ * Convert log level string to integer.
+ * @param {string} logLevel
+ * @returns {number}
+ */
+function logLevelToInt(logLevel) {
+    if (logLevel == "ERROR") return 5;
+    if (logLevel == "WARN") return 4;
+    if (logLevel == "INFO") return 3;
+    if (logLevel == "DEBUG") return 2;
+    if (logLevel == "TRACE") return 1;
+    return 0;
+}
+
+/**
+ * Convert log level integer to string.
+ * @param {number} logLevelInt
+ * @returns {string}
+ */
+function intToLogLevel(logLevelInt) {
+    if (logLevelInt == 5) return "ERROR";
+    if (logLevelInt == 4) return "WARN";
+    if (logLevelInt == 3) return "INFO";
+    if (logLevelInt == 2) return "DEBUG";
+    if (logLevelInt == 1) return "TRACE";
+    return "UNKNOWN";
+}
+
 function doSplit(logText) {
     let resp_split = logText.split("\n");
     /**
      * @type {LogEntry[]}
      */
-    let new_split = [];
+    let spl = [];
     for (let i = 0; i < resp_split.length; i++) {
         let line = resp_split[i];
         let parsedLine = parseLine(line);
@@ -85,91 +112,48 @@ function doSplit(logText) {
             logEntry.logLevel = parsedLine.logLevel;
             logEntry.module = parsedLine.module;
             logEntry.content = parsedLine.content;
-            new_split.push(logEntry)
+            spl.push(logEntry)
         } else {
-            if (new_split.length >= 1) {
-                new_split[new_split.length - 1].content += "\n" + line;
+            if (spl.length >= 1) {
+                spl[spl.length - 1].content += "\n" + line;
             }
         }
     }
-    let max_len = 100;
-    for (let i = 0; i < new_split.length; i++) {
-        if (new_split[i].content.length > max_len) {
-            new_split[i].shortContent = new_split[i].content.substring(0, max_len) + "...";
+    let max_len = 1000;
+    for (let i = 0; i < spl.length; i++) {
+        if (spl[i].content.length > max_len) {
+            spl[i].shortContent = spl[i].content.substring(0, max_len) + "...";
         } else {
-            new_split[i].shortContent = new_split[i].content;
+            spl[i].shortContent = spl[i].content;
         }
     }
-    let timeStart = new_split[0].date;
+    let timeStart = spl[0].date;
     let modules = {};
-    for (let i = 0; i < new_split.length; i++) {
-        if (i == 0) {
-            new_split[i].fromStart = 0.0;
-            new_split[i].fromPrev = 0.0;
-        } else {
-            new_split[i].fromStart = new_split[i].date - timeStart;
-            new_split[i].fromPrev = new_split[i].date - new_split[i - 1].date;
-        }
-        new_split[i].marginTop = Math.round(Math.sqrt(Math.min(Math.max(1, new_split[i].fromPrev), 1000)));
-        if (new_split[i].logLevel == "ERROR") {
-            new_split[i].logLevelInt = 5;
-        }
-        else if (new_split[i].logLevel == "WARN") {
-            new_split[i].logLevelInt = 4;
-        }
-        else if (new_split[i].logLevel == "INFO") {
-            new_split[i].logLevelInt = 3;
-        }
-        else if (new_split[i].logLevel == "DEBUG") {
-            new_split[i].logLevelInt = 2;
-        }
-        else if (new_split[i].logLevel == "TRACE") {
-            new_split[i].logLevelInt = 1;
-        }
-        else {
-            new_split[i].logLevelInt = 0;
-        }
+    for (let i = 0; i < spl.length; i++) {
+        spl[i].logLevelInt = logLevelToInt(spl[i].logLevel);
 
-        if (new_split[i].module in modules) {
-            modules[new_split[i].module].count += 1;
-            modules[new_split[i].module].maxLevel = Math.max(modules[new_split[i].module].maxLevel, new_split[i].logLevelInt);
-            modules[new_split[i].module].lastOcc = new_split[i].fromStart;
+        if (spl[i].module in modules) {
+            modules[spl[i].module].count += 1;
+            modules[spl[i].module].maxLevel = Math.max(modules[spl[i].module].maxLevel, spl[i].logLevelInt);
+            modules[spl[i].module].lastOcc = spl[i].date;
         } else {
-            modules[new_split[i].module] = {};
-            modules[new_split[i].module].count = 1;
-            modules[new_split[i].module].firstOcc = new_split[i].fromStart;
-            modules[new_split[i].module].lastOcc = new_split[i].fromStart;
-            modules[new_split[i].module].maxLevel = new_split[i].logLevelInt;
+            modules[spl[i].module] = {};
+            modules[spl[i].module].count = 1;
+            modules[spl[i].module].firstOcc = spl[i].date;
+            modules[spl[i].module].lastOcc = spl[i].date;
+            modules[spl[i].module].maxLevel = spl[i].logLevelInt;
         }
     }
-    for (let i in modules) {
-        let logLevelStr = "";
-        if (modules[i].maxLevel == 5) {
-            logLevelStr = "ERROR";
-        }
-        else if (modules[i].maxLevel == 4) {
-            logLevelStr = "WARN";
-        }
-        else if (modules[i].maxLevel == 3) {
-            logLevelStr = "INFO";
-        }
-        else if (modules[i].maxLevel == 2) {
-            logLevelStr = "DEBUG";
-        }
-        else if (modules[i].maxLevel == 1) {
-            logLevelStr = "TRACE";
-        }
-        else {
-            logLevelStr = "UNKNOWN";
-        }
-        modules[i].logLevelStr = logLevelStr;
+    for (let module in modules) {
+        modules[module].logLevelStr = intToLogLevel(modules[module].maxLevel);
     }
 
-    return [new_split, modules];
+    return [spl, modules];
 }
 
 class LogStorage {
     constructor() {
+        // @type {LogFile[]}
         this.logFiles = [];
         // @type {AcceptLogFilter}
         this.displayFilter = null;
@@ -196,19 +180,17 @@ class LogStorage {
     }
 
     exportDisplayedToLog() {
+        this.mergeEntries();
         let exported = "";
-        for (let logFileNo = 0; logFileNo < this.logFiles.length; logFileNo++) {
-            let logFile = this.logFiles[logFileNo];
-            for (let i = 0; i < logFile.logEntries.length; i++) {
-                let obj = logFile.logEntries[i];
-                if (this.displayFilter && !this.checkFilter(obj, this.displayFilter)) {
-                    continue;
-                }
-                if (this.displayDenyFilter && !this.checkNegativeFilter(obj, this.displayDenyFilter)) {
-                    continue;
-                }
-                exported += `[${obj.date.toISOString()} ${obj.logLevel} ${obj.module}] ${obj.content}\n`;
+        for (let i = 0; i < this.mergedEntries.length; i++) {
+            let obj = this.mergedEntries[i];
+            if (this.displayFilter && !this.checkFilter(obj, this.displayFilter)) {
+                continue;
             }
+            if (this.displayDenyFilter && !this.checkNegativeFilter(obj, this.displayDenyFilter)) {
+                continue;
+            }
+            exported += `[${obj.date.toISOString()} ${obj.logLevel} ${obj.module}] ${obj.content}\n`;
         }
         return exported;
     }
@@ -294,27 +276,73 @@ class LogStorage {
         return true;
     }
 
-    renderLogEntries() {
-        let html_split = "<div>";
+    mergeEntries() {
+        //prepare indexes
+        let logFileIdx = [];
         for (let logFileNo = 0; logFileNo < this.logFiles.length; logFileNo++) {
-            let logFile = this.logFiles[logFileNo];
-            for (let i = 0; i < logFile.logEntries.length; i++) {
-                let obj = logFile.logEntries[i];
+            logFileIdx.push(0);
+        }
+        let logFileIdxMax = [];
+        for (let logFileNo = 0; logFileNo < this.logFiles.length; logFileNo++) {
+            logFileIdxMax.push(this.logFiles[logFileNo].logEntries.length);
+        }
 
-                if (this.displayFilter && !this.checkFilter(obj, this.displayFilter)) {
-                    continue;
+        let mergedEntries = [];
+        // TODO - this algorithm is not optimal - it should be done with priority queue to achieve O(n log n) complexity
+        // TODO - for small number of log files it is not a problem
+        while (true) {
+            // find next entry
+
+            let lowestNextDate = null;
+            let nextEntryFileIdx = null;
+            for (let logFileNo = 0; logFileNo < this.logFiles.length; logFileNo++) {
+                let idx = logFileIdx[logFileNo];
+                if (idx < logFileIdxMax[logFileNo]) {
+                    let entry = this.logFiles[logFileNo].logEntries[idx];
+                    if (lowestNextDate == null || entry.date < lowestNextDate) {
+                        nextEntryFileIdx = logFileNo;
+                        lowestNextDate = entry.date;
+                    }
                 }
-                if (this.displayDenyFilter && !this.checkNegativeFilter(obj, this.displayDenyFilter)) {
-                    continue;
-                }
-                let content = obj.shortContent.replaceAll("\n", " ");
-                html_split += `<div id="entry-${logFileNo}-${i}" class="entry ${obj.logLevel}" style="margin-top: ${obj.marginTop}px">`;
-                //html_split += `<div class="module">${obj.date.toISOString()}</div>`;
-                html_split += `<div class="entry-time">${obj.fromStart / 1000}s</div>`;
-                html_split += `<div class="module">${obj.module}</div>`;
-                html_split += `<div class="content">${content}</div>`;
-                html_split += '</div>';
             }
+            if (nextEntryFileIdx == null) {
+                break;
+            }
+            let mergedEntry = this.logFiles[nextEntryFileIdx].logEntries[logFileIdx[nextEntryFileIdx]];
+            mergedEntry.fileNo = nextEntryFileIdx;
+            mergedEntry.fileDisplayName = this.logFiles[nextEntryFileIdx].displayName;
+            mergedEntries.push(mergedEntry);
+            logFileIdx[nextEntryFileIdx] += 1;
+        }
+        this.mergedEntries = mergedEntries;
+    }
+
+    renderLogEntries() {
+        this.mergeEntries();
+        let mergedEntries = this.mergedEntries;
+
+            let html_split = "<div>";
+
+        for (let i = 0; i < mergedEntries.length; i++) {
+            let obj = mergedEntries[i];
+            let marginTop = 0;
+            if (i > 0) {
+                marginTop = Math.round(Math.sqrt(Math.min(Math.max(1, obj.date - mergedEntries[i - 1].date), 1000)));
+            }
+            if (this.displayFilter && !this.checkFilter(obj, this.displayFilter)) {
+                continue;
+            }
+            if (this.displayDenyFilter && !this.checkNegativeFilter(obj, this.displayDenyFilter)) {
+                continue;
+            }
+            let content = obj.shortContent.replaceAll("\n", " ");
+            html_split += `<div id="entry-${obj.fileNo}-${i}" class="entry entry-${obj.fileNo} ${obj.logLevel}" style="margin-top: ${marginTop}px">`;
+            //html_split += `<div class="module">${obj.date.toISOString()}</div>`;
+            html_split += `<div class="entry-time">${(obj.date - mergedEntries[0].date) / 1000}s</div>`;
+            html_split += `<div class="entry-file">${obj.fileDisplayName}</div>`;
+            html_split += `<div class="module">${obj.module}</div>`;
+            html_split += `<div class="content">${content}</div>`;
+            html_split += '</div>';
         }
         html_split += "</div>";
         return html_split;
@@ -323,9 +351,15 @@ class LogStorage {
 }
 
 class LogFile {
-    constructor(logText) {
-        let [new_split, modules] = doSplit(logText);
-        this.logEntries = new_split;
+    /**
+     * @param {string} logText
+     * @param {string} displayName
+     */
+
+    constructor(logText, displayName) {
+        let [spl, modules] = doSplit(logText);
+        this.logEntries = spl;
         this.modules = modules;
+        this.displayName = displayName;
     }
 }

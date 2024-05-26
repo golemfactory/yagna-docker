@@ -11,6 +11,12 @@ div.entry {
     display: flex;
     flex-direction: row;
 }
+div.entry-0 {
+    background-color: #f0f0f0;
+}
+div.entry-1 {
+    background-color: #90EE90;
+}
 div.module-entry {
     display: flex;
     flex-direction: row;
@@ -26,9 +32,14 @@ div.module {
     width: 23em;
     min-width: 23em;
 }
+div.entry-file {
+    font-weight: bold;
+    width: 5em;
+    min-width: 5em;
+}
 div.content {
     white-space: pre;
-    font-family: monospace;
+    font-family: arial;
 }
 
 .INFO {

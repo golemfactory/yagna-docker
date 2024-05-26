@@ -52,6 +52,7 @@ class PanelServer:
             current_dir=current_dir,
         ), content_type="text/html")
 
+
     async def get_yagna_log(self, request):
         yagna_no = int(request.match_info.get('no', 0))
         # get from uri:

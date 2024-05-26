@@ -16,9 +16,25 @@
 
 <body>
 
-<div id="module_list"></div>
-<div> <button class="btn btn-primary" onclick="downloadLog();">Download filtered log</button> </div>
-<div id="log_viewer" style="padding: 1em;">
+<div style="display: flex; flex-direction: column; border: 1px solid gray; padding: 1em;">
+    <div style="display: flex; flex-direction: row;">
+        <button id="hide_module_list_btn" disabled="true" class="btn btn-secondary btn-menu"
+                onclick="hideModulePanel()">Hide
+        </button>
+        <button id="show_module_list_btn" style="margin-left: 1.0em" class="btn btn-secondary btn-menu"
+                onclick="showModulePanel()">Show
+        </button>
+    </div>
+    <div id="module_list" style="display: none;"></div>
+</div>
+<div style="display: flex; flex-direction: column; border: 1px solid gray; padding: 1em;">
+    <div style="display: flex; flex-direction: row;">
+        <div>
+            <button class="btn btn-primary" onclick="downloadLog();">Download filtered log</button>
+        </div>
+    </div>
+    <div id="log_viewer" style="padding: 1em;">
+    </div>
 </div>
 </body>
 <style>
@@ -29,6 +45,18 @@
     let baseUrl = window.location.href.split('/').slice(0, -2).join('/');
 
     let logStorage = null;
+
+    function showModulePanel() {
+        $('#module_list').show('slow');
+        $('#hide_module_list_btn').prop('disabled', false);
+        $('#show_module_list_btn').prop('disabled', true);
+    }
+
+    function hideModulePanel() {
+        $('#module_list').hide('slow');
+        $('#hide_module_list_btn').prop('disabled', true);
+        $('#show_module_list_btn').prop('disabled', false);
+    }
 
     function downloadLog() {
         let exported = logStorage.exportDisplayedToLog();
@@ -42,22 +70,34 @@
         document.body.removeChild(a);  // Remove the anchor from the document
         URL.revokeObjectURL(url);
     }
+
     function getUrlParams() {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
         return urlParams;
     }
 
-    async function showNodeFile(no, path) {
+    async function loadNodeFile(no, path, displayName) {
         let runUp = fetch(`${baseUrl}/yagna/${no}/file/${path}`, {
             method: "GET"
         });
         let response = await runUp;
         let resp = await response.text();
 
-        let logFile = new LogFile(resp)
+        let logFile = new LogFile(resp, displayName)
 
-        logStorage.addLogFile(logFile);
+        logStorage.addLogFile(logFile, displayName);
+
+    }
+
+    async function loadStart() {
+        logStorage = new LogStorage();
+
+        await loadNodeFile(0, 'yagna|yagna_rCURRENT.log', 'yagna-0');
+        await loadNodeFile(0, 'ya-provider|ya-provider_rCURRENT.log', 'prov-0');
+        await loadNodeFile(1, 'yagna|yagna_rCURRENT.log', 'yagna-1');
+        await loadNodeFile(1, 'ya-provider|ya-provider_rCURRENT.log', 'prov-1');
+
         let displayFilter = new AcceptLogFilter();
         displayFilter.acceptedLogLevels = [];
         displayFilter.acceptedModules = [];
@@ -106,8 +146,8 @@
     }
 
     $(document).ready(function () {
-        logStorage = new LogStorage();
-        showNodeFile(0, 'yagna|yagna_rCURRENT.log');
+
+        loadStart();
     });
 
 
