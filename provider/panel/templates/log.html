@@ -35,6 +35,31 @@
     </div>
     <div id="log_viewer" style="padding: 1em;">
     </div>
+
+    <div id="action-div" class="actionDiv" style="display: none;">
+        <table>
+            <tr>
+                <td>
+                    File name:
+                </td>
+                <td>
+                    <span id="action-div-file-name"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Date time:
+                </td>
+                <td>
+                    <span id="action-div-date-time"></span>
+                </td>
+            </tr>
+        </table>
+        <div>
+            <button class="btn btn-primary">View entry details</button>
+        </div>
+    </div>
+
 </div>
 </body>
 <style>
@@ -95,8 +120,8 @@
 
         await loadNodeFile(0, 'yagna|yagna_rCURRENT.log', 'yagna-0');
         await loadNodeFile(0, 'ya-provider|ya-provider_rCURRENT.log', 'prov-0');
-        await loadNodeFile(1, 'yagna|yagna_rCURRENT.log', 'yagna-1');
-        await loadNodeFile(1, 'ya-provider|ya-provider_rCURRENT.log', 'prov-1');
+        //await loadNodeFile(1, 'yagna|yagna_rCURRENT.log', 'yagna-1');
+        //await loadNodeFile(1, 'ya-provider|ya-provider_rCURRENT.log', 'prov-1');
 
         let displayFilter = new AcceptLogFilter();
         displayFilter.acceptedLogLevels = [];
@@ -145,11 +170,24 @@
         }
     }
 
+
     $(document).ready(function () {
 
         loadStart();
     });
 
+    function entryClicked(fileNo, entryNo) {
+        console.log("entry clicked", fileNo, entryNo);
+
+        $('#action-div').hide();
+
+        $('#action-div-file-name').text(logStorage.logFiles[fileNo].displayName);
+        $('#action-div-date-time').text(logStorage.mergedEntries[entryNo].date.toISOString());
+        $('#action-div').appendTo('#entry-' + fileNo + '-' + entryNo);
+        $('#action-div').show();
+
+
+    }
 
     {% include 'log.js' %}
 

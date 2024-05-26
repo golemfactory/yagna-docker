@@ -10,6 +10,7 @@
 div.entry {
     display: flex;
     flex-direction: row;
+    position: relative;
 }
 div.entry-0 {
     background-color: #f0f0f0;
@@ -24,8 +25,9 @@ div.module-entry {
 }
 div.entry-time {
     font-weight: bold;
-    width: 5em;
-    min-width: 5em;
+    width: 6em;
+    min-width: 6em;
+    cursor: pointer;
 }
 div.module {
     font-weight: bold;
@@ -40,6 +42,16 @@ div.entry-file {
 div.content {
     white-space: pre;
     font-family: arial;
+}
+.actionDiv {
+    position: absolute;
+    top: 4em;
+    left: 4em;
+    background: #FFFFFF;
+    z-index: 1;
+    padding: 1em;
+    border: 1px solid #000000;
+
 }
 
 .INFO {

@@ -151,6 +151,7 @@ function doSplit(logText) {
     return [spl, modules];
 }
 
+
 class LogStorage {
     constructor() {
         // @type {LogFile[]}
@@ -338,7 +339,7 @@ class LogStorage {
             let content = obj.shortContent.replaceAll("\n", " ");
             html_split += `<div id="entry-${obj.fileNo}-${i}" class="entry entry-${obj.fileNo} ${obj.logLevel}" style="margin-top: ${marginTop}px">`;
             //html_split += `<div class="module">${obj.date.toISOString()}</div>`;
-            html_split += `<div class="entry-time">${(obj.date - mergedEntries[0].date) / 1000}s</div>`;
+            html_split += `<div onclick="entryClicked(${obj.fileNo}, ${i})" class="entry-time">${((obj.date - mergedEntries[0].date) / 1000).toFixed(3)}s</div>`;
             html_split += `<div class="entry-file">${obj.fileDisplayName}</div>`;
             html_split += `<div class="module">${obj.module}</div>`;
             html_split += `<div class="content">${content}</div>`;
@@ -347,7 +348,6 @@ class LogStorage {
         html_split += "</div>";
         return html_split;
     }
-
 }
 
 class LogFile {
