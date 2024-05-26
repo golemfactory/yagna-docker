@@ -25,6 +25,9 @@
                 onclick="showModulePanel()">Show
         </button>
     </div>
+    <div id="drop-area">
+        <p>Drag & Drop log file here</p>
+    </div>
     <div id="module_list" style="display: none;"></div>
 </div>
 <div style="display: flex; flex-direction: column; border: 1px solid gray; padding: 1em;">
@@ -111,7 +114,7 @@
 
         let logFile = new LogFile(resp, displayName)
 
-        logStorage.addLogFile(logFile, displayName);
+        logStorage.addLogFile(logFile);
 
     }
 
@@ -170,9 +173,61 @@
         }
     }
 
+    function initDragArea() {
+        const dropArea = document.getElementById('drop-area');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            dropArea.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            ([...files]).forEach(readFile);
+        }
+
+        function readFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                let logFile = new LogFile(content, file.name)
+
+                logStorage.addLogFile(logFile);
+                $('#log_viewer').html(logStorage.renderLogEntries());
+
+            };
+            reader.readAsText(file);
+        }
+    }
 
     $(document).ready(function () {
-
+        initDragArea();
         loadStart();
     });
 
