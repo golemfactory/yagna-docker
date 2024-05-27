@@ -13,7 +13,7 @@
             crossorigin="anonymous"></script>
     <script src="log.js"></script>
     <link href="log.css" rel="stylesheet">
-    <title>Command panel</title>
+    <title>Log viewer</title>
 </head>
 
 <body>
@@ -66,11 +66,10 @@
     </div>
 
 </div>
-</body>
 
 <script>
     // extract last folder
-    let baseUrl = window.location.href.split('/').slice(0, -2).join('/');
+    let baseUrl = window.location.href.split("?")[0].split('/').slice(0, -2).join('/');
 
     let logStorage = null;
 
@@ -115,14 +114,40 @@
         let logFile = new LogFile(resp, displayName)
 
         logStorage.addLogFile(logFile);
+    }
 
+    async function loadFileByLink(link, displayName) {
+        if (!link.startsWith('http')) {
+            link = `${baseUrl}/${link}`;
+        }
+        console.log(`Loading file from link: ${link}`);
+        let runUp = fetch(link, {
+            method: "GET"
+        });
+        let response = await runUp;
+        let resp = await response.text();
+        if (response.status !== 200) {
+            console.error(`Failed to load file from link: ${resp}`);
+            return;
+        }
+        let logFile = new LogFile(resp, displayName)
+
+        logStorage.addLogFile(logFile);
     }
 
     async function loadStart() {
         logStorage = new LogStorage();
+        const urlParams = getUrlParams();
 
-        await loadNodeFile(0, 'yagna|yagna_rCURRENT.log', 'yagna-0');
-        await loadNodeFile(0, 'ya-provider|ya-provider_rCURRENT.log', 'prov-0');
+        if (urlParams.has('links') && urlParams.get('module') !== '') {
+            let links = urlParams.get('links').split(',');
+            for (let i = 0; i < links.length; i++) {
+                let link = links[i];
+                await loadFileByLink(link, 'link-' + i);
+            }
+        }
+        //await loadNodeFile(0, 'yagna|yagna_rCURRENT.log', 'yagna-0');
+        //await loadNodeFile(0, 'ya-provider|ya-provider_rCURRENT.log', 'prov-0');
         //await loadNodeFile(1, 'yagna|yagna_rCURRENT.log', 'yagna-1');
         //await loadNodeFile(1, 'ya-provider|ya-provider_rCURRENT.log', 'prov-1');
 
@@ -130,7 +155,6 @@
         displayFilter.acceptedLogLevels = [];
         displayFilter.acceptedModules = [];
         displayFilter.contentSearchFields = [];
-        const urlParams = getUrlParams();
         if (urlParams.has('module') && urlParams.get('module') !== '') {
             displayFilter.acceptedModules = urlParams.get('module').split(',');
         }
@@ -244,3 +268,5 @@
     }
 
 </script>
+</body>
+</html>

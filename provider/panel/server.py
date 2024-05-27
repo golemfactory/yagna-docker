@@ -53,13 +53,13 @@ class PanelServer:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(current_dir, "templates/log.js"), "r") as f:
             log_html = f.read()
-        return web.Response(text=log_html, content_type="text/html")
+        return web.Response(text=log_html, content_type="text/javascript")
 
     async def web_log_css(self, request):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(current_dir, "templates/log.css"), "r") as f:
             log_html = f.read()
-        return web.Response(text=log_html, content_type="text/html")
+        return web.Response(text=log_html, content_type="text/css")
 
     async def get_yagna_log(self, request):
         yagna_no = int(request.match_info.get('no', 0))
