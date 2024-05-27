@@ -38,35 +38,79 @@ function parseLine(line) {
         return false;
     }
     let start_date_idx = 1;
-    if (line[0] != "[") {
+    let method;
+    if (line[0] == "[") {
+        method = "rust";
+    }
+    else if (line[0] == '2' && line[1] == '0') {
+        method = "python";
+    }
+    else {
         return false;
     }
-    let end_date_idx = line.indexOf(" ");
-    if (end_date_idx == -1) {
-        return false;
-    }
-    let timestamp = Date.parse(line.substring(start_date_idx, end_date_idx));
-    if (isNaN(timestamp)) {
-        return false;
-    }
-    let date = new Date(timestamp);
-    let endInfo = line.indexOf(" ", end_date_idx + 1);
-    if (endInfo == -1) {
-        return false;
-    }
-    let logLevel = line.substring(end_date_idx + 1, endInfo);
-    let endModule = line.indexOf("]", endInfo + 1);
-    if (endModule == -1) {
-        return false;
-    }
-    let module = line.substring(endInfo + 1, endModule);
+    if (method == "rust") {
+        let end_date_idx = line.indexOf(" ");
+        if (end_date_idx == -1) {
+            return false;
+        }
+        let timestamp = Date.parse(line.substring(start_date_idx, end_date_idx));
+        if (isNaN(timestamp)) {
+            return false;
+        }
+        let date = new Date(timestamp);
+        let endInfo = line.indexOf(" ", end_date_idx + 1);
+        if (endInfo == -1) {
+            return false;
+        }
+        let logLevel = line.substring(end_date_idx + 1, endInfo);
+        let endModule = line.indexOf("]", endInfo + 1);
+        if (endModule == -1) {
+            return false;
+        }
+        let module = line.substring(endInfo + 1, endModule);
 
-    return {
-        date: date,
-        logLevel: logLevel.trim(),
-        module: module.trim(),
-        content: line.substring(endModule + 2).trim()
-    };
+        return {
+            date: date,
+            logLevel: logLevel.trim(),
+            module: module.trim(),
+            content: line.substring(endModule + 2).trim()
+        };
+    } else if (method == "python") {
+        let end_date_idx = line.indexOf(" ");
+        let second_space = line.indexOf(" ", end_date_idx + 1);
+        //timestamp with space
+        let timestamp = Date.parse(line.substring(0, second_space));
+        if (isNaN(timestamp)) {
+            return false;
+        }
+        //skip spaces
+        while (line[second_space] == " ") {
+            second_space++;
+        }
+        //get log level
+        let logLevelEnd = line.indexOf(" ", second_space);
+        let logLevel = line.substring(second_space, logLevelEnd);
+        //skip spaces
+        while (line[logLevelEnd] == " ") {
+            logLevelEnd++;
+        }
+        //get module
+        let moduleEnd = line.indexOf(" ", logLevelEnd);
+        let module = line.substring(logLevelEnd, moduleEnd);
+        //skip spaces
+        while (line[moduleEnd] == " ") {
+            moduleEnd++;
+        }
+        //get content
+
+        return {
+            date: new Date(timestamp),
+            logLevel: logLevel,
+            module: module,
+            content: line.substring(moduleEnd).trim()
+        }
+    }
+    return false;
 }
 
 /**

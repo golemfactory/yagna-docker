@@ -43,15 +43,23 @@ class PanelServer:
     async def web_log(self, request):
         computer_name = os.environ.get("COMPUTERNAME", "Unknown")
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        template = env.get_template('log.html')
-        params = self.load_compose_params()
-        nodes = list(range(0, int(params["provCount"])))
-        return web.Response(text=template.render(
-            nodes=nodes,
-            computer_name=computer_name,
-            current_dir=current_dir,
-        ), content_type="text/html")
+        # read file from template
 
+        with open(os.path.join(current_dir, "templates/log.html"), "r") as f:
+            log_html = f.read()
+        return web.Response(text=log_html, content_type="text/html")
+
+    async def web_log_js(self, request):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        with open(os.path.join(current_dir, "templates/log.js"), "r") as f:
+            log_html = f.read()
+        return web.Response(text=log_html, content_type="text/html")
+
+    async def web_log_css(self, request):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        with open(os.path.join(current_dir, "templates/log.css"), "r") as f:
+            log_html = f.read()
+        return web.Response(text=log_html, content_type="text/html")
 
     async def get_yagna_log(self, request):
         yagna_no = int(request.match_info.get('no', 0))
@@ -327,6 +335,8 @@ class PanelServer:
         app.router.add_route("GET", "/", lambda request: self.hello(request))
         app.router.add_route("GET", "/web", lambda request: self.web(request))
         app.router.add_route("GET", "/web/log", lambda request: self.web_log(request))
+        app.router.add_route("GET", "/web/log.js", lambda request: self.web_log_js(request))
+        app.router.add_route("GET", "/web/log.css", lambda request: self.web_log_css(request))
         app.router.add_route("GET", "/yagna/{no}/log", lambda request: self.get_yagna_log(request))
         app.router.add_route("GET", "/yagna/{no}/isup", lambda request: self.check_yanga_up(request))
         app.router.add_route("GET", "/yagna/{no}/proc", lambda request: self.list_docker_processes(request))

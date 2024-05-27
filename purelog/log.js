@@ -33,7 +33,7 @@ class DenyLogFilter {
  * @param {string} line
  * @returns { {date: Date, logLevel: string, module: string, content: string}|boolean}
  */
-function parseLine(line) {
+function parseLine1(line) {
     if (!line) {
         return false;
     }
@@ -68,6 +68,7 @@ function parseLine(line) {
         content: line.substring(endModule + 2).trim()
     };
 }
+
 
 /**
  * Convert log level string to integer.

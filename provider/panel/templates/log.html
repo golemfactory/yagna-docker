@@ -11,6 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
+    <script src="log.js"></script>
+    <link href="log.css" rel="stylesheet">
     <title>Command panel</title>
 </head>
 
@@ -65,9 +67,7 @@
 
 </div>
 </body>
-<style>
-    {% include 'log.css' %}
-</style>
+
 <script>
     // extract last folder
     let baseUrl = window.location.href.split('/').slice(0, -2).join('/');
@@ -220,7 +220,6 @@
 
                 logStorage.addLogFile(logFile);
                 $('#log_viewer').html(logStorage.renderLogEntries());
-
             };
             reader.readAsText(file);
         }
@@ -243,7 +242,5 @@
 
 
     }
-
-    {% include 'log.js' %}
 
 </script>
