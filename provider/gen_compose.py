@@ -21,11 +21,17 @@ TEMPLATE = """  provider_%%PROVIDER_NO%%:
     volumes:
       - './dock_prov_%%PROVIDER_NO%%/ya-provider:/root/.local/share/ya-provider'
       - './dock_prov_%%PROVIDER_NO%%/yagna:/root/.local/share/yagna'
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 5g
 """
 
 # Exposing ports is optional (enabled by default)
 TEMPLATE_PORTS = """    ports:
       - '%%PORT_NO%%:7465'
+      - '%%UDP_PORT_NO%%:11150/udp'
 """
 
 
@@ -42,6 +48,7 @@ def generate_compose_file(
         entr = TEMPLATE.replace("%%PROVIDER_NO%%", str(provider_no))
         if expose_ports:
             ports = TEMPLATE_PORTS.replace("%%PORT_NO%%", str(8555 + provider_no))
+            ports = ports.replace("%%UDP_PORT_NO%%", str(11150 + provider_no))
         else:
             ports = ""
         entr = entr.replace("%%TEMPLATE_PORTS%%", ports)
@@ -56,7 +63,7 @@ def main():
     args = argparse.ArgumentParser()
 
     args.add_argument("-n", "--num-providers", type=int, help="Number of providers to be generated", default=2)
-    args.add_argument("--no-ports", type=bool, help="Hide yagna ports")
+    args.add_argument("--no-ports", type=bool, help="Hide yagna ports", default=False)
     args.add_argument("-o", "--output-file", type=str, help="Output file generated",
                       default="docker-compose_generated.yml")
     args.add_argument("--provider-name-prefix", type=str, help="Provider name prefix",
@@ -73,7 +80,7 @@ def main():
         expose_ports=not args.no_ports,
         provider_name_prefix=args.provider_name_prefix,
         subnet=args.subnet,
-        image_name="yagna-provider")
+        image_name=args.image_name)
 
     with open(args.output_file, "w") as f:
         logger.info(f"Writing to file {args.output_file}")
