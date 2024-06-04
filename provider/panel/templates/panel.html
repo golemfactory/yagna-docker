@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <title>Command panel</title>
+</head>
+<style>
+    {% include 'panel.css' %}
+</style>
+<body>
+    <div style="padding: 0.6em; font-size: 1.4em; font-weight: bold">Your testnet - {{ computer_name }} - {{ current_dir }}</div>
+
+
+    <div style="display: flex; flex-direction: row">
+        <div id="side_view" style="display: flex; flex-direction: column; padding: 0.5em;">
+        </div>
+        <div id="event_mainer_view" style="display: none; flex-direction: column;">
+            <div id="main_view" style="display:none; border: 1px solid lightgray; padding: 0.3em;">
+                <div style="display: flex; flex-direction: row;">
+                    <button id="hide_main_panel_btn" class="btn btn-secondary btn-menu" onclick="hideMainPanel()">Hide</button>
+                    <button id="show_main_panel_btn" class="btn btn-secondary btn-menu" onclick="showMainPanel()">Show</button>
+                </div>
+                <div id="command_view" style="display: flex;">
+
+                    <div style="padding: 10px; width: 13em; border: 1px solid lightgray; margin: 1em;">
+                        <div class="" style="font-weight: bold; margin-bottom: 0.4em; font-size: 1.1em;">Compose commands:</div>
+                        <div>
+                            <button class="btn btn-primary btn-compose-action" id="stop_nodes_btn" onclick="stopNodes()" style="margin: 0.5em;"
+                                title="docker compose down (removes all containers)">Service down</button>
+                        </div>
+                        <div>
+                            <button class="btn btn-primary btn-compose-action" id="start_nodes_btn" onclick="startNodes()" style="margin: 0.5em;">Service up</button>
+                        </div>
+                    </div>
+                    <div style="padding: 10px; width: 26em; border: 1px solid lightgray; margin: 1em;">
+                        <div class="" style="font-weight: bold; margin-bottom: 0.4em; font-size: 1.1em;">Parameters:</div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend" style="width: 12em;">
+                                <span class="input-group-text">Subnet</span>
+                            </div>
+                            <input disabled="disabled" id="subnet_name" type="text" />
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend" style="width: 12em;">
+                               <span class="input-group-text">Provider count</span>
+                            </div>
+                            <input disabled="disabled" id="provider_count" type="text" />
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend" style="width: 12em;">
+                               <span class="input-group-text">Provider name prefix</span>
+                            </div>
+                            <input disabled="disabled" id="provider_prefix" type="text" />
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend" style="width: 12em;">
+                               <span class="input-group-text">Yagna tag version</span>
+                            </div>
+                            <input disabled="disabled" id="image_yagna_version" type="text" />
+                        </div>
+                        <div>
+                            <button class="btn btn-primary" id="btn_edit_params" onclick="editParams()">Edit params</button>
+                            <button class="btn btn-primary" id="btn_reset_params" onclick="resetParams()">Reset params</button>
+                            <button class="btn btn-secondary"  id="btn_cancel_params" style="display: none" onclick="cancelParams()">Cancel</button>
+                            <button class="btn btn-primary"  id="btn_save_params" style="display: none" onclick="saveParams()">Confirm changes</button>
+                        </div>
+                    </div>
+                    <div class="what-to-show" style="display: flex; flex-direction: column; padding: 10px; border: 1px solid lightgray; margin: 1em;">
+                        <div class="" style="font-weight: bold; margin-bottom: 0.4em; font-size: 1.0em;">What to show:</div>
+                        <div>
+                            <input type="checkbox" id="show_section_container_commands_chkbox" checked="checked" onchange="sectionChanged()"/>
+                            <label for="show_section_container_commands_chkbox">Show container commands</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="show_section_yagna_commands_chkbox" onchange="sectionChanged()"/>
+                            <label for="show_section_yagna_commands_chkbox">Show yagna commands</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="show_section_useful_files_chkbox" onchange="sectionChanged()"/>
+                            <label for="show_section_useful_files_chkbox">Show useful files</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="show_section_process_list_chkbox" checked="checked" onchange="sectionChanged()"/>
+                            <label for="show_section_process_list_chkbox">Show process list</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="show_section_env_list_chkbox" onchange="sectionChanged()"/>
+                            <label for="show_section_env_list_chkbox">Show env list</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                {% for node in nodes %}
+                <div style="padding: 1em; border: 1px solid lightgray; margin-top: 0.3em; display: flex; flex-direction: column">
+                    <div style="font-weight: bold;">
+                        Provider number: {{node}}
+                        (Subnet: <span style="font-weight: bold;" id="subnet_name_{{ node }}"></span>)
+                        (Id: <span id="yagna_status_{{node}}"></span>)
+                    </div>
+                    <div style="display: flex; flex-direction: row;">
+                        <div class="container-commands" style="padding: 10px; border: 1px solid lightgray; margin: 1em;">
+                            <div class="" style="font-weight: bold; margin-bottom: 0.4em; font-size: 1.0em;">Container commands:</div>
+                            <div>
+                                <button class="btn btn-primary btn-container-action" onclick="startNode({{node}})" style="margin: 0.5em;"
+                                        title="start single node (works only if docker compose is already up)">Start node</button>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary btn-container-action" onclick="restartNode({{node}})" style="margin: 0.5em;"
+                                        title="stop and then starts node (around 12 seconds)">Restart node</button>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary btn-container-action" onclick="stopNode({{node}})" style="margin: 0.5em;"
+                                        title="stops node (around 10seconds)">Stop node</button>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary btn-container-action" onclick="killNode({{node}})" style="margin: 0.5em;"
+                                        title="stops node instantly">Kill node</button>
+                            </div>
+                        </div>
+                        <div class="yagna-commands" style="display:none; padding: 10px; border: 1px solid lightgray; margin: 1em;">
+                            <div style="font-weight: bold; margin-bottom: 0.4em; font-size: 1.0em;">Yagna commands:</div>
+                            <div>
+                                <button class="btn btn-primary btn-container-action" onclick="runYagnaCommand({{node}}, 'payment status --json')" style="margin: 0.5em;"
+                                        title="docker compose down (removes all containers)">Payment status</button>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary btn-container-action" onclick="runYagnaCommand({{node}}, 'version show --json')" style="margin: 0.5em;"
+                                        title="docker compose down (removes all containers)">Show version</button>
+                            </div>
+                        </div>
+                        <div class="useful-files" style="display:none; padding: 10px; border: 1px solid lightgray; margin: 1em;">
+                            <div class="" style="font-weight: bold; margin-bottom: 0.4em; font-size: 1.0em;">Useful files:</div>
+                            <div style="display: flex; flex-direction: column">
+                                <button class="btn btn-primary btn-container-action" onclick="showNodeFile({{node}}, 'ya-provider|globals.json')" style="margin: 0.5em;"
+                                        title="docker compose down (removes all containers)">globals.json</button>
+                                <button class="btn btn-primary btn-container-action" onclick="showNodeFile({{node}}, 'ya-provider|hardware.json')" style="margin: 0.5em;"
+                                        title="docker compose down (removes all containers)">hardware.json</button>
+                                <button class="btn btn-primary btn-container-action" onclick="showNodeFile({{node}}, 'ya-provider|presets.json')" style="margin: 0.5em;"
+                                        title="docker compose down (removes all containers)">presets.json</button>
+                                <button class="btn btn-primary btn-container-action" onclick="showNodeFile({{node}}, 'ya-provider|ya-provider_rCURRENT.log')" style="margin: 0.5em;"
+                                        title="current provider log">provider log</button>
+                                <button class="btn btn-primary btn-container-action" onclick="showNodeFile({{node}}, 'yagna|yagna_rCURRENT.log')" style="margin: 0.5em;"
+                                        title="current provider log">yagna log</button>
+
+                            </div>
+                        </div>
+                        <div class="process-list"  style="border: 1px solid lightgray; padding: 0.4em; margin: 1em;">
+                            <div style="font-weight: bold">Process list:</div>
+                            <div id="proc_list_{{ node }}"></div>
+                        </div>
+                        <div class="env-list"  style="display:none; border: 1px solid lightgray; padding: 0.4em; margin: 1.0em;">
+                            <div style="font-weight: bold">Env list:</div>
+                            <div id="env_list_{{ node }}"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div id="myModal" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Command result</h5>
+          </div>
+          <div class="modal-body">
+            <textarea style="width: 100%; height: 500px; font-family: Consolas" id="command_result"></textarea>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</body>
+<script>
+    let nodes = {{nodes}};
+
+    {% include 'panel.js' %}
+</script>
+</html>

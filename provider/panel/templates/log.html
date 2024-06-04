@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+    <script src="log.js"></script>
+    <link href="log.css" rel="stylesheet">
+    <title>Log viewer</title>
+</head>
+
+<body>
+
+<div style="display: flex; flex-direction: column; border: 1px solid gray; padding: 1em;">
+    <div style="display: flex; flex-direction: row;">
+        <button id="hide_module_list_btn" disabled="true" class="btn btn-secondary btn-menu"
+                onclick="hideModulePanel()">Hide
+        </button>
+        <button id="show_module_list_btn" style="margin-left: 1.0em" class="btn btn-secondary btn-menu"
+                onclick="showModulePanel()">Show
+        </button>
+    </div>
+    <div id="drop-area">
+        <p>Drag & Drop log file here</p>
+    </div>
+    <div id="module_list" style="display: none;"></div>
+</div>
+<div style="display: flex; flex-direction: column; border: 1px solid gray; padding: 1em;">
+    <div style="display: flex; flex-direction: row;">
+        <div>
+            <button class="btn btn-primary" onclick="downloadLog();">Download filtered log</button>
+        </div>
+    </div>
+    <div id="log_viewer" style="padding: 1em;">
+    </div>
+
+    <div id="action-div" class="actionDiv" style="display: none;">
+        <table>
+            <tr>
+                <td>
+                    File name:
+                </td>
+                <td>
+                    <span id="action-div-file-name"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Date time:
+                </td>
+                <td>
+                    <span id="action-div-date-time"></span>
+                </td>
+            </tr>
+        </table>
+        <div>
+            <button class="btn btn-primary">View entry details</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // extract last folder
+    let baseUrl = window.location.href.split("?")[0].split('/').slice(0, -2).join('/');
+
+    let logStorage = null;
+
+    function showModulePanel() {
+        $('#module_list').show('slow');
+        $('#hide_module_list_btn').prop('disabled', false);
+        $('#show_module_list_btn').prop('disabled', true);
+    }
+
+    function hideModulePanel() {
+        $('#module_list').hide('slow');
+        $('#hide_module_list_btn').prop('disabled', true);
+        $('#show_module_list_btn').prop('disabled', false);
+    }
+
+    function downloadLog() {
+        let exported = logStorage.exportDisplayedToLog();
+        let blob = new Blob([exported], {type: "text/plain;charset=utf-8"});
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = 'filtered.log';  // The file name you want to save as
+        document.body.appendChild(a);  // Append the anchor to the body
+        a.click();  // Programmatically click the anchor to trigger the download
+        document.body.removeChild(a);  // Remove the anchor from the document
+        URL.revokeObjectURL(url);
+    }
+
+    function getUrlParams() {
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        return urlParams;
+    }
+
+    async function loadNodeFile(no, path, displayName) {
+        let runUp = fetch(`${baseUrl}/yagna/${no}/file/${path}`, {
+            method: "GET"
+        });
+        let response = await runUp;
+        let resp = await response.text();
+
+        let logFile = new LogFile(resp, displayName)
+
+        logStorage.addLogFile(logFile);
+    }
+
+    async function loadFileByLink(link, displayName) {
+        if (!link.startsWith('http')) {
+            link = `${baseUrl}/${link}`;
+        }
+        console.log(`Loading file from link: ${link}`);
+        let runUp = fetch(link, {
+            method: "GET"
+        });
+        let response = await runUp;
+        let resp = await response.text();
+        if (response.status !== 200) {
+            console.error(`Failed to load file from link: ${resp}`);
+            return;
+        }
+        let logFile = new LogFile(resp, displayName)
+
+        logStorage.addLogFile(logFile);
+    }
+
+    async function loadStart() {
+        logStorage = new LogStorage();
+        const urlParams = getUrlParams();
+
+        if (urlParams.has('links') && urlParams.get('module') !== '') {
+            let links = urlParams.get('links').split(',');
+            for (let i = 0; i < links.length; i++) {
+                let link = links[i];
+                await loadFileByLink(link, 'link-' + i);
+            }
+        }
+        //await loadNodeFile(0, 'yagna|yagna_rCURRENT.log', 'yagna-0');
+        //await loadNodeFile(0, 'ya-provider|ya-provider_rCURRENT.log', 'prov-0');
+        //await loadNodeFile(1, 'yagna|yagna_rCURRENT.log', 'yagna-1');
+        //await loadNodeFile(1, 'ya-provider|ya-provider_rCURRENT.log', 'prov-1');
+
+        let displayFilter = new AcceptLogFilter();
+        displayFilter.acceptedLogLevels = [];
+        displayFilter.acceptedModules = [];
+        displayFilter.contentSearchFields = [];
+        if (urlParams.has('module') && urlParams.get('module') !== '') {
+            displayFilter.acceptedModules = urlParams.get('module').split(',');
+        }
+        if (urlParams.has('level') && urlParams.get('level') !== '') {
+            displayFilter.acceptedLogLevels = urlParams.get('level').split(',');
+        }
+        if (urlParams.has('search') && urlParams.get('search') !== '') {
+            displayFilter.contentSearchFields = urlParams.get('search').split(',');
+        }
+        logStorage.setDisplayFilter(
+            displayFilter
+        );
+        let displayDenyFilter = new DenyLogFilter();
+
+        if (urlParams.has('deny_module') && urlParams.get('deny_module') !== '') {
+            displayDenyFilter.deniedModules = urlParams.get('deny_module').split(',');
+        }
+        if (urlParams.has('deny_level') && urlParams.get('deny_level') !== '') {
+            displayDenyFilter.deniedLogLevels = urlParams.get('deny_level').split(',');
+        }
+        if (urlParams.has('deny_search') && urlParams.get('deny_search') !== '') {
+            displayDenyFilter.deniedSearchFields = urlParams.get('deny_search').split(',');
+        }
+        logStorage.setDisplayDenyFilter(
+            displayDenyFilter
+        );
+
+        if (!urlParams.has('hide_modules') || urlParams.get('hide_modules') !== 'true') {
+            $('#module_list').html(logStorage.renderModules());
+        }
+
+        $('#log_viewer').html(logStorage.renderLogEntries());
+
+        if (urlParams.has('scroll') && urlParams.get('scroll') !== '') {
+            let scroll = urlParams.get('scroll');
+            let element = document.getElementById(scroll);
+            if (element) {
+                element.scrollIntoView();
+            }
+        }
+    }
+
+    function initDragArea() {
+        const dropArea = document.getElementById('drop-area');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            dropArea.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            ([...files]).forEach(readFile);
+        }
+
+        function readFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                let logFile = new LogFile(content, file.name)
+
+                logStorage.addLogFile(logFile);
+                $('#log_viewer').html(logStorage.renderLogEntries());
+            };
+            reader.readAsText(file);
+        }
+    }
+
+    $(document).ready(function () {
+        initDragArea();
+        loadStart();
+    });
+
+    function entryClicked(fileNo, entryNo) {
+        console.log("entry clicked", fileNo, entryNo);
+
+        $('#action-div').hide();
+
+        $('#action-div-file-name').text(logStorage.logFiles[fileNo].displayName);
+        $('#action-div-date-time').text(logStorage.mergedEntries[entryNo].date.toISOString());
+        $('#action-div').appendTo('#entry-' + fileNo + '-' + entryNo);
+        $('#action-div').show();
+
+
+    }
+
+</script>
+</body>
+</html>
