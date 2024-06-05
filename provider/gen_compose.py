@@ -1,6 +1,11 @@
 import argparse
 import json
 import logging
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from node_env.env file
+load_dotenv('node_env.env')
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -34,13 +39,12 @@ TEMPLATE_PORTS = """    ports:
       - '%%UDP_PORT_NO%%:11150/udp'
 """
 
-
 # Description: This script generates a docker-compose file for running multiple providers on the same machine.
 def generate_compose_file(
         number_of_providers: int = 2,
         expose_ports: bool = False,
         provider_name_prefix: str = "dock-prov",
-        subnet: str = "change_me",
+        subnet: str = "your_default_subnet",  # Change default subnet here
         image_name: str = "yagna-provider") -> str:
     comp_file = ""
     comp_file += "services:\n"
@@ -69,7 +73,7 @@ def main():
     args.add_argument("--provider-name-prefix", type=str, help="Provider name prefix",
                       default="dock-prov")
     args.add_argument("--subnet", type=str, help="Subnet for the providers",
-                      default="change_me")
+                      default=os.getenv('SUBNET', 'your_default_subnet'))  # Change default subnet here
     args.add_argument("--image-name", type=str, help="Image name for the providers",
                       default="yagna-provider")
 
