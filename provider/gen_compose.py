@@ -1,6 +1,11 @@
 import argparse
 import json
 import logging
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from node_env.env file
+load_dotenv('node_env.env')
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -21,20 +26,25 @@ TEMPLATE = """  provider_%%PROVIDER_NO%%:
     volumes:
       - './dock_prov_%%PROVIDER_NO%%/ya-provider:/root/.local/share/ya-provider'
       - './dock_prov_%%PROVIDER_NO%%/yagna:/root/.local/share/yagna'
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 5g
 """
 
 # Exposing ports is optional (enabled by default)
 TEMPLATE_PORTS = """    ports:
       - '%%PORT_NO%%:7465'
+      - '%%UDP_PORT_NO%%:11150/udp'
 """
-
 
 # Description: This script generates a docker-compose file for running multiple providers on the same machine.
 def generate_compose_file(
         number_of_providers: int = 2,
         expose_ports: bool = False,
         provider_name_prefix: str = "dock-prov",
-        subnet: str = "change_me",
+        subnet: str = "your_default_subnet",  # Change default subnet here
         image_name: str = "yagna-provider") -> str:
     comp_file = ""
     comp_file += "services:\n"
@@ -42,6 +52,7 @@ def generate_compose_file(
         entr = TEMPLATE.replace("%%PROVIDER_NO%%", str(provider_no))
         if expose_ports:
             ports = TEMPLATE_PORTS.replace("%%PORT_NO%%", str(8555 + provider_no))
+            ports = ports.replace("%%UDP_PORT_NO%%", str(11150 + provider_no))
         else:
             ports = ""
         entr = entr.replace("%%TEMPLATE_PORTS%%", ports)
@@ -56,13 +67,13 @@ def main():
     args = argparse.ArgumentParser()
 
     args.add_argument("-n", "--num-providers", type=int, help="Number of providers to be generated", default=2)
-    args.add_argument("--no-ports", type=bool, help="Hide yagna ports")
+    args.add_argument("--no-ports", type=bool, help="Hide yagna ports", default=False)
     args.add_argument("-o", "--output-file", type=str, help="Output file generated",
                       default="docker-compose_generated.yml")
     args.add_argument("--provider-name-prefix", type=str, help="Provider name prefix",
                       default="dock-prov")
     args.add_argument("--subnet", type=str, help="Subnet for the providers",
-                      default="change_me")
+                      default=os.getenv('SUBNET', 'your_default_subnet'))  # Change default subnet here
     args.add_argument("--image-name", type=str, help="Image name for the providers",
                       default="yagna-provider")
 
@@ -73,7 +84,7 @@ def main():
         expose_ports=not args.no_ports,
         provider_name_prefix=args.provider_name_prefix,
         subnet=args.subnet,
-        image_name="yagna-provider")
+        image_name=args.image_name)
 
     with open(args.output_file, "w") as f:
         logger.info(f"Writing to file {args.output_file}")

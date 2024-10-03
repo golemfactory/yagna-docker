@@ -1,0 +1,89 @@
+#log_viewer {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+#module_list {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    padding: 1em;
+}
+div.entry {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+}
+div.entry-0 {
+    background-color: #f0f0f0;
+}
+div.entry-1 {
+    background-color: #90EE90;
+}
+div.module-entry {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 1em;
+}
+div.entry-time {
+    font-weight: bold;
+    width: 6em;
+    min-width: 6em;
+    cursor: pointer;
+}
+div.module {
+    font-weight: bold;
+    width: 23em;
+    min-width: 23em;
+}
+div.entry-file {
+    font-weight: bold;
+    width: 5em;
+    min-width: 5em;
+}
+div.content {
+    white-space: pre;
+    font-family: arial;
+}
+.actionDiv {
+    position: absolute;
+    top: 4em;
+    left: 4em;
+    background: #FFFFFF;
+    z-index: 1;
+    padding: 1em;
+    border: 1px solid #000000;
+
+}
+#drop-area {
+    width: 30em;
+    height: 5em;
+    border: 1px dashed #ccc;
+    border-radius: 1em;
+    text-align: center;
+    padding: 1em;
+    margin: 1em;
+    transition: background-color 0.3s;
+}
+
+#drop-area.dragover {
+    background-color: #f0f8ff;
+}
+
+
+.INFO {
+    color: blue;
+}
+.WARN {
+    color: orange;
+}
+.ERROR {
+    color: red;
+}
+.INFO td {
+    color: blue;
+}
+.WARN td {
+    color: orange;
+}
+.ERROR td {
+    color: red;
+}

@@ -69,7 +69,7 @@
 
 <script>
     // extract last folder
-    let baseUrl = window.location.href.split("?")[0].split('/').slice(0, -2).join('/');
+    let baseUrl = window.location.href.split("?")[0].split('/').slice(0, -1).join('/');
 
     let logStorage = null;
 
@@ -117,9 +117,6 @@
     }
 
     async function loadFileByLink(link, displayName) {
-        if (!link.startsWith('http')) {
-            link = `${baseUrl}/${link}`;
-        }
         console.log(`Loading file from link: ${link}`);
         let runUp = fetch(link, {
             method: "GET"
