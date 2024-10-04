@@ -7,7 +7,7 @@ services:
       args:
         - 'YAGNA_VERSION=${YAGNA_VERSION}'
     ports:
-      - '7465:7465'
+      - '7499:7465'
     command: yagna service run
     env_file:
       - node_env.env
