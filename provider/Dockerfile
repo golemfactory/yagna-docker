@@ -2,7 +2,7 @@ ARG YAGNA_VERSION=v0.15.2
 
 # Full python toolset for ease of development
 # If you need something smaller, you can use ubuntu slim or alpine without python
-FROM debian:bookworm
+FROM ubuntu:latest
 
 # This tools are not needed but are helpful for debugging
 RUN apt-get update -y
